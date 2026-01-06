@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -54,8 +54,35 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  update(id: ObjectId, updateUserDto: UpdateUserDto) {
-    return `This action updates a #${id} user`;
+  async update(id: ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
+    
+    if (updateUserDto.email) {
+      const existingUser = await this.userModel.findOne({ email: updateUserDto.email });
+      
+      // If a user was found AND it's not the user we are currently updating
+      if (existingUser && existingUser._id !== id) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(
+        updateUserDto.password,
+        BCRYPT_ROUNDS
+      );
+    }
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      id,
+      { $set: updateUserDto },
+      { new: true }
+    ).exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID #${id} not found`);
+    }
+
+    return updatedUser;
   }
 
   remove(id: ObjectId) {
