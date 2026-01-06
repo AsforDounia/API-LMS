@@ -55,7 +55,7 @@ export class UsersService {
   }
 
   async update(id: ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
-    
+
     if (updateUserDto.email) {
       const existingUser = await this.userModel.findOne({ email: updateUserDto.email });
       
@@ -85,8 +85,8 @@ export class UsersService {
     return updatedUser;
   }
 
-  remove(id: ObjectId) {
-    return `This action removes a #${id} user`;
+  async remove(id: ObjectId): Promise<User> {
+    return this.update(id, { deletedAt: new Date() } as any);
   }
 }
 

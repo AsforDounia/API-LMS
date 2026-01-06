@@ -24,6 +24,9 @@ export class User extends Document {
 
   @Prop({ default: true })
   isActive: boolean;
+
+  @Prop({ default: null })
+  deletedAt: Date;
 }
 
 export const UserSchema = SchemaFactory.createForClass(User);
