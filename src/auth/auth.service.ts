@@ -1,26 +1,57 @@
-import { Injectable } from '@nestjs/common';
-import { CreateAuthDto } from './dto/create-auth.dto';
-import { UpdateAuthDto } from './dto/update-auth.dto';
+import { ConflictException, Injectable } from '@nestjs/common';
+import { InjectModel } from '@nestjs/mongoose';
+import { JwtService } from '@nestjs/jwt';
+import { Model } from 'mongoose';
+import * as bcrypt from 'bcryptjs';
+
+import { User } from '@users/entities/user.entity';
+import { RegisterDto } from './dto/register.dto';
+import { Role } from '@common/enums/role.enum';
+import { BCRYPT_ROUNDS } from '@common/constants';
 
 @Injectable()
 export class AuthService {
-  create(createAuthDto: CreateAuthDto) {
-    return 'This action adds a new auth';
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private jwtService: JwtService,
+  ) {}
+
+  private generateToken(user: User): string {
+    const payload = {
+      sub: user._id,
+      email: user.email,
+      role: user.role,
+    };
+    return this.jwtService.sign(payload);
   }
 
-  findAll() {
-    return `This action returns all auth`;
-  }
+  async register(registerDto: RegisterDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
+    const existingUser = await this.userModel.findOne({ email: registerDto.email });
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
+    }
 
-  findOne(id: string) {
-    return `This action returns a #${id} auth`;
-  }
+    const hashedPassword = await bcrypt.hash(registerDto.password, BCRYPT_ROUNDS);
 
-  update(id: string, updateAuthDto: UpdateAuthDto) {
-    return `This action updates a #${id} auth`;
-  }
+    const user = new this.userModel({
+      ...registerDto,
+      password: hashedPassword,
+      role: Role.STUDENT,
+    });
 
-  remove(id: string) {
-    return `This action removes a #${id} auth`;
+    await user.save();
+
+    const accessToken = this.generateToken(user);
+
+    return {
+      message: 'Registration successful',
+      accessToken,
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
   }
 }
