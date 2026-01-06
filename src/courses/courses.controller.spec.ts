@@ -1,7 +1,6 @@
 import { Test, TestingModule } from '@nestjs/testing';
 import { CoursesController } from './courses.controller';
 import { CoursesService } from './courses.service';
-import { describe, expect, beforeEach, it } from 'bun:test'
 
 describe('CoursesController', () => {
   let controller: CoursesController;
