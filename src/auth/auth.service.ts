@@ -1,4 +1,4 @@
-import { ConflictException, Injectable } from '@nestjs/common';
+import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
@@ -6,6 +6,7 @@ import * as bcrypt from 'bcryptjs';
 
 import { User } from '@users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
+import { LoginDto } from './dto/login.dto';
 import { Role } from '@common/enums/role.enum';
 import { BCRYPT_ROUNDS } from '@common/constants';
 
@@ -45,6 +46,35 @@ export class AuthService {
 
     return {
       message: 'Registration successful',
+      accessToken,
+      user: {
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+    };
+  }
+
+  async login(loginDto: LoginDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
+    const user = await this.userModel.findOne({ email: loginDto.email });
+    if (!user) {
+      throw new UnauthorizedException('Invalid Email');
+    }
+
+    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid Password');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is deactivated');
+    }
+
+    const accessToken = this.generateToken(user);
+
+    return {
+      message: 'Login successful',
       accessToken,
       user: {
         email: user.email,

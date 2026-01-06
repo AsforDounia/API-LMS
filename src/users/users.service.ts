@@ -65,13 +65,6 @@ export class UsersService {
       }
     }
 
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(
-        updateUserDto.password,
-        BCRYPT_ROUNDS
-      );
-    }
-
     const updatedUser = await this.userModel.findByIdAndUpdate(
       id,
       { $set: updateUserDto },
