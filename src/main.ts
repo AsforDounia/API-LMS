@@ -8,6 +8,6 @@ async function bootstrap() {
   app.useGlobalInterceptors(new ResponseInterceptor());
 
   await app.listen(process.env.PORT ?? 3000);
-  console.log('Mongo URI:', process.env.MONGO_URI);
+  console.log('Mongo URI:', process.env.MONGODB_URI);
 }
 bootstrap();
