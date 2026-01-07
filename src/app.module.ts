@@ -5,14 +5,15 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { QuizModule } from './quiz/quiz.module'; 
 import { QuestionModule } from './question/question.module';
 
+import { UsersModule } from './users/users.module';
+import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
+import { MongooseModule } from '@nestjs/mongoose';
+import { User, UserSchema } from './users/entities/user.entity';
+import { ConfigModule } from '@nestjs/config';
 
 @Module({
-  imports: [
-    MongooseModule.forRoot(process.env.MONGO_URI || 'mongodb://localhost:27017/lms'), 
-    QuizModule,
-    QuestionModule
-
-  ],
+  imports: [],
   controllers: [AppController],
   providers: [AppService],
 
