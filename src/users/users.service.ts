@@ -60,16 +60,9 @@ export class UsersService {
       const existingUser = await this.userModel.findOne({ email: updateUserDto.email });
       
       // If a user was found AND it's not the user we are currently updating
-      if (existingUser && existingUser._id !== id) {
+      if (existingUser && !existingUser._id.equals(id) ) {
         throw new ConflictException('Email already in use');
       }
-    }
-
-    if (updateUserDto.password) {
-      updateUserDto.password = await bcrypt.hash(
-        updateUserDto.password,
-        BCRYPT_ROUNDS
-      );
     }
 
     const updatedUser = await this.userModel.findByIdAndUpdate(
