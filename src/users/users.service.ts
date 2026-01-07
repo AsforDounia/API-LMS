@@ -68,6 +68,15 @@ export class UsersService {
       throw new ForbiddenException('You cannot change your role');
     }
 
+    if (isAdmin && !isOwner) {
+      const allowedAdminFields = ['role', 'deletedAt', 'isActive'];
+      const invalidFields = Object.keys(updateUserDto).filter(
+        key => !allowedAdminFields.includes(key)
+      );
+      if (invalidFields.length > 0) {
+        throw new ForbiddenException(`Admins cannot update fields: ${invalidFields.join(', ')}`);
+      }
+    }
     if (updateUserDto.email) {
       const existingUser = await this.userModel.findOne({ email: updateUserDto.email });
       
@@ -77,6 +86,10 @@ export class UsersService {
       }
     }
 
+    // Hash password if updated
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, BCRYPT_ROUNDS);
+    }
     const updatedUser = await this.userModel.findByIdAndUpdate(
       id,
       { $set: updateUserDto },
