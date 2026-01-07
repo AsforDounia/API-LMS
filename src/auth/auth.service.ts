@@ -59,7 +59,7 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
     const user = await this.userModel.findOne({ email: loginDto.email });
     if (!user) {
-      throw new UnauthorizedException('Invalid Email');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     if (user.deletedAt) {
@@ -72,11 +72,7 @@ export class AuthService {
 
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid Password');
-    }
-
-    if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated');
+      throw new UnauthorizedException('Invalid email or password');
     }
 
     const accessToken = this.generateToken(user);
