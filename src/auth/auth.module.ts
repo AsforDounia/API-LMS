@@ -8,10 +8,15 @@ import { AuthService } from './auth.service';
 import { AuthController } from './auth.controller';
 import { User, UserSchema } from '../users/entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
+import { TokenBlacklistService } from './token-blacklist.service';
+import { TokenBlacklist, TokenBlacklistSchema } from './schemas/token-blacklist.schema';
 
 @Module({
   imports: [
-    MongooseModule.forFeature([{ name: User.name, schema: UserSchema }]),
+    MongooseModule.forFeature([
+      { name: User.name, schema: UserSchema },
+      { name: TokenBlacklist.name, schema: TokenBlacklistSchema },
+    ]),
     PassportModule,
     JwtModule.registerAsync({
       inject: [ConfigService],
@@ -22,7 +27,7 @@ import { JwtStrategy } from './strategies/jwt.strategy';
     }),
   ],
   controllers: [AuthController],
-  providers: [AuthService, JwtStrategy],
-  exports: [AuthService, JwtModule],
+  providers: [AuthService, JwtStrategy, TokenBlacklistService],
+  exports: [AuthService, JwtModule, TokenBlacklistService],
 })
 export class AuthModule {}

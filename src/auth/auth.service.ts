@@ -9,12 +9,14 @@ import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { Role } from '@common/enums/role.enum';
 import { BCRYPT_ROUNDS } from '@common/constants';
+import { TokenBlacklistService } from './token-blacklist.service';
 
 @Injectable()
 export class AuthService {
   constructor(
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
+    private tokenBlacklistService: TokenBlacklistService,
   ) {}
 
   private generateToken(user: User): string {
@@ -87,5 +89,26 @@ export class AuthService {
         role: user.role,
       },
     };
+  }
+
+  async logout(token: string, user: User): Promise<{ message: string }> {
+    if (!token) {
+      throw new UnauthorizedException('No token provided for logout.');
+    }
+
+    try {
+      // Decode token to get expiration time
+      const decoded = this.jwtService.decode(token) as any;
+      const expiresAt = new Date(decoded.exp * 1000);
+
+      // Blacklist the token
+      await this.tokenBlacklistService.blacklistToken(token, expiresAt);
+
+      return {
+        message: 'Logout successful. Your session has been terminated.',
+      };
+    } catch (error) {
+      throw new UnauthorizedException('Invalid token provided for logout.');
+    }
   }
 }
