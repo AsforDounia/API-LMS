@@ -7,13 +7,17 @@ import { CommonModule } from './common/common.module';
 import { MongooseModule } from '@nestjs/mongoose';
 import { User, UserSchema } from './users/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
+import { QuizModule } from './quiz/quiz.module';
+import { QuestionModule } from './question/question.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     MongooseModule.forRoot(process.env.MONGODB_URI || ''),
     UsersModule,
-    AuthModule
+    AuthModule,
+    QuizModule,
+    QuestionModule
   ],
   controllers: [AppController],
   providers: [AppService],
