@@ -2,7 +2,7 @@
 // import { NestFactory } from '@nestjs/core';
 // import { Module } from '@nestjs/common';
 // import { MongooseModule } from '@nestjs/mongoose';
-// // import { Module as ModuleEntity, ModuleSchema, ModuleType } from './src/modul/schema/module.schema';
+// import { Module as ModuleEntity, ModuleSchema, ModuleType } from './src/modul/schema/module.schema';
 // import { Model, Document } from 'mongoose';
 // import { InjectModel } from '@nestjs/mongoose';
 
