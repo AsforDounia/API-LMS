@@ -29,7 +29,7 @@ export class AuthService {
   async register(registerDto: RegisterDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
     const existingUser = await this.userModel.findOne({ email: registerDto.email });
     if (existingUser) {
-      throw new ConflictException('Email already exists');
+      throw new ConflictException('An account with this email address already exists. Please use a different email or try logging in.');
     }
 
     const hashedPassword = await bcrypt.hash(registerDto.password, BCRYPT_ROUNDS);
@@ -59,20 +59,20 @@ export class AuthService {
   async login(loginDto: LoginDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
     const user = await this.userModel.findOne({ email: loginDto.email });
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email or password. Please check your credentials and try again.');
     }
 
     if (user.deletedAt) {
-      throw new UnauthorizedException('Account does not exist');
+      throw new UnauthorizedException('This account has been deleted. Please contact support if you believe this is an error.');
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Account is deactivated');
+      throw new UnauthorizedException('Your account has been deactivated. Please contact support to reactivate your account.');
     }
 
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password');
+      throw new UnauthorizedException('Invalid email or password. Please check your credentials and try again.');
     }
 
     const accessToken = this.generateToken(user);
