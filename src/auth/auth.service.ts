@@ -62,6 +62,14 @@ export class AuthService {
       throw new UnauthorizedException('Invalid Email');
     }
 
+    if (user.deletedAt) {
+      throw new UnauthorizedException('Account does not exist');
+    }
+
+    if (!user.isActive) {
+      throw new UnauthorizedException('Account is deactivated');
+    }
+
     const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
     if (!isPasswordValid) {
       throw new UnauthorizedException('Invalid Password');
