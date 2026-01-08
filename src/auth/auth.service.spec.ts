@@ -25,13 +25,20 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async register(registerDto: RegisterDto): Promise<{ message: string; user: Partial<User>; accessToken: string }> {
-    const existingUser = await this.userModel.findOne({ email: registerDto.email });
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ message: string; user: Partial<User>; accessToken: string }> {
+    const existingUser = await this.userModel.findOne({
+      email: registerDto.email,
+    });
     if (existingUser) {
       throw new ConflictException('Email already exists');
     }
 
-    const hashedPassword = await bcrypt.hash(registerDto.password, BCRYPT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(
+      registerDto.password,
+      BCRYPT_ROUNDS,
+    );
 
     const user = new this.userModel({
       ...registerDto,

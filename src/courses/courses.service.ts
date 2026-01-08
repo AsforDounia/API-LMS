@@ -8,9 +8,7 @@ import { User } from '@users/entities/user.entity';
 
 @Injectable()
 export class CoursesService {
-  constructor(
-    @InjectModel(Course.name) private courseModel: Model<Course>,
-  ) {}
+  constructor(@InjectModel(Course.name) private courseModel: Model<Course>) {}
 
   async create(createCourseDto: CreateCourseDto, user: User): Promise<Course> {
     const course = new this.courseModel({
@@ -31,7 +29,7 @@ export class CoursesService {
   }
 
   update(id: number, updateCourseDto: UpdateCourseDto) {
-    return `This action updates a #${id} course`;
+    return `This action updates a #${id} course , ${updateCourseDto}`;
   }
 
   remove(id: number) {

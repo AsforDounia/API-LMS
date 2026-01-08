@@ -27,18 +27,25 @@ export class JwtStrategy extends PassportStrategy(Strategy) {
     const token = ExtractJwt.fromAuthHeaderAsBearerToken()(req);
 
     if (token) {
-      const isBlacklisted = await this.tokenBlacklistService.isTokenBlacklisted(token);
+      const isBlacklisted =
+        await this.tokenBlacklistService.isTokenBlacklisted(token);
       if (isBlacklisted) {
-        throw new UnauthorizedException('Access token has been revoked. Please log in again.');
+        throw new UnauthorizedException(
+          'Access token has been revoked. Please log in again.',
+        );
       }
     }
 
     const user = await this.userModel.findById(payload.sub);
     if (!user) {
-      throw new UnauthorizedException('User account associated with this token no longer exists.');
+      throw new UnauthorizedException(
+        'User account associated with this token no longer exists.',
+      );
     }
     if (!user.isActive) {
-      throw new UnauthorizedException('Your account has been deactivated. Please contact support.');
+      throw new UnauthorizedException(
+        'Your account has been deactivated. Please contact support.',
+      );
     }
     return user;
   }

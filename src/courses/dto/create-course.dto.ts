@@ -1,17 +1,15 @@
-
-import {  IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { IsBoolean, IsNotEmpty, IsOptional, IsString } from 'class-validator';
 
 export class CreateCourseDto {
-    @IsString()
-    @IsNotEmpty()
-    title: string;
+  @IsString()
+  @IsNotEmpty()
+  title: string;
 
-    @IsString()
-    @IsNotEmpty()
-    description: string;
+  @IsString()
+  @IsNotEmpty()
+  description: string;
 
-    @IsBoolean()
-    @IsOptional()
-    isPublished?: boolean;
-
+  @IsBoolean()
+  @IsOptional()
+  isPublished?: boolean;
 }
