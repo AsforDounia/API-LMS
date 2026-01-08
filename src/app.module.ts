@@ -9,6 +9,7 @@ import { User, UserSchema } from './users/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
 import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
+import { CoursesModule } from './courses/courses.module';
 
 @Module({
   imports: [
@@ -17,9 +18,10 @@ import { QuestionModule } from './question/question.module';
     UsersModule,
     AuthModule,
     QuizModule,
-    QuestionModule
+    QuestionModule,
+    CoursesModule
   ],
   controllers: [AppController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }
