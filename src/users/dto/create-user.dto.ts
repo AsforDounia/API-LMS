@@ -8,19 +8,17 @@ export class CreateUserDto {
 
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     firstName: string;
 
     @IsString()
     @IsNotEmpty()
+    @IsOptional()
     lastName: string;
 
     @IsOptional()
     @IsString()
     profilePicture?: string;
-
-    @IsOptional()
-    @IsString()
-    password?: string;
 
     @IsEnum(Role)
     @IsOptional()
