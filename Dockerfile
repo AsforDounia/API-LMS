@@ -1,16 +1,16 @@
-FROM oven/bun:alpine AS base
+FROM node:alpine AS base
 WORKDIR /usr/src/app
-COPY package.json bun.lockb ./
+COPY package.json package-lock.json ./
 
 FROM base AS dev_deps
-RUN bun install --frozen-lockfile
+RUN npm ci --only=development
 
 FROM base AS build
 COPY --from=dev_deps /usr/src/app/node_modules ./node_modules
 COPY . .
-RUN bun run build
+RUN npm run build
 
-FROM base AS release 
+FROM base AS release
 COPY --from=build /usr/src/app/dist ./dist
 EXPOSE ${PORT}
-CMD ["bun", "start:prod"]
+CMD ["npm", "run", "start:prod"]

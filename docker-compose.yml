@@ -5,7 +5,7 @@ services:
     build:
       context: .
       target: base
-    command: bun run start:dev
+    command: npm run start:dev
     ports:
       - "${PORT:-3000}:3000"
     volumes:
