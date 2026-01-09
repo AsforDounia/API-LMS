@@ -10,22 +10,24 @@ import { BadRequestException } from '@nestjs/common';
 export class QuestionService {
   constructor(
     @InjectModel(Question.name) private readonly questionModel: Model<Question>,
-     @InjectModel(Quiz.name)
-  private readonly quizModel: Model<Quiz>,
+    @InjectModel(Quiz.name)
+    private readonly quizModel: Model<Quiz>,
   ) {}
 
-  async createQuestion(createQuestionDto: CreateQuestionDto): Promise<Question> {
-  const quizExists = await this.quizModel.exists({
-    _id: createQuestionDto.quizId,
-  });
+  async createQuestion(
+    createQuestionDto: CreateQuestionDto,
+  ): Promise<Question> {
+    const quizExists = await this.quizModel.exists({
+      _id: createQuestionDto.quizId,
+    });
 
-  if (!quizExists) {
-    throw new BadRequestException('Quiz does not exist');
+    if (!quizExists) {
+      throw new BadRequestException('Quiz does not exist');
+    }
+
+    const question = new this.questionModel(createQuestionDto);
+    return question.save();
   }
-
-  const question = new this.questionModel(createQuestionDto);
-  return question.save();
-}
 
   async getQuestionsByQuiz(quizId: string): Promise<Question[]> {
     return this.questionModel.find({ quizId }).exec();
@@ -35,8 +37,13 @@ export class QuestionService {
     return this.questionModel.findById(id).exec();
   }
 
-  async updateQuestion(id: string, updateDto: Partial<CreateQuestionDto>): Promise<Question | null> {
-    return this.questionModel.findByIdAndUpdate(id, updateDto, { new: true }).exec();
+  async updateQuestion(
+    id: string,
+    updateDto: Partial<CreateQuestionDto>,
+  ): Promise<Question | null> {
+    return this.questionModel
+      .findByIdAndUpdate(id, updateDto, { new: true })
+      .exec();
   }
 
   async deleteQuestion(id: string): Promise<Question | null> {

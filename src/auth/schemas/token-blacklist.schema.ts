@@ -12,7 +12,8 @@ export class TokenBlacklist {
   expiresAt: Date;
 }
 
-export const TokenBlacklistSchema = SchemaFactory.createForClass(TokenBlacklist);
+export const TokenBlacklistSchema =
+  SchemaFactory.createForClass(TokenBlacklist);
 
 // Add index for automatic cleanup of expired tokens
 TokenBlacklistSchema.index({ expiresAt: 1 }, { expireAfterSeconds: 0 });
