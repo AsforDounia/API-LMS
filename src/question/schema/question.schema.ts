@@ -27,7 +27,6 @@ export class Question extends Document {
 
   @Prop({ required: true })
   points: number;
-
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);
