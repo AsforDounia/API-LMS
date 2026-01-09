@@ -1,4 +1,4 @@
-import { ConflictException, Injectable, NotFoundException } from '@nestjs/common';
+import { ConflictException, ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
 import { Model } from 'mongoose';
 import { InjectModel } from '@nestjs/mongoose';
@@ -54,8 +54,29 @@ export class UsersService {
     return `This action returns a #${id} user`;
   }
 
-  async update(id: ObjectId, updateUserDto: UpdateUserDto): Promise<User> {
+  async update(id: ObjectId, updateUserDto: UpdateUserDto, currentUser: User): Promise<User> {
+    
+    const isOwner = currentUser._id.equals(id);
+    const isAdmin = currentUser.role === Role.ADMIN;
 
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('You cannot update this user');
+    }
+
+    // Prevent regular users from changing their role
+    if (!isAdmin && 'role' in updateUserDto) {
+      throw new ForbiddenException('You cannot change your role');
+    }
+
+    if (isAdmin && !isOwner) {
+      const allowedAdminFields = ['role', 'deletedAt', 'isActive'];
+      const invalidFields = Object.keys(updateUserDto).filter(
+        key => !allowedAdminFields.includes(key)
+      );
+      if (invalidFields.length > 0) {
+        throw new ForbiddenException(`Admins cannot update fields: ${invalidFields.join(', ')}`);
+      }
+    }
     if (updateUserDto.email) {
       const existingUser = await this.userModel.findOne({ email: updateUserDto.email });
       
@@ -65,6 +86,10 @@ export class UsersService {
       }
     }
 
+    // Hash password if updated
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(updateUserDto.password, BCRYPT_ROUNDS);
+    }
     const updatedUser = await this.userModel.findByIdAndUpdate(
       id,
       { $set: updateUserDto },
@@ -78,8 +103,8 @@ export class UsersService {
     return updatedUser;
   }
 
-  async remove(id: ObjectId): Promise<User> {
-    return this.update(id, { deletedAt: new Date() } as any);
+  async remove(id: ObjectId, currentUser: User): Promise<User> {
+    return this.update(id, { deletedAt: new Date() } as any, currentUser);
   }
 }
 
