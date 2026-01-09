@@ -1,54 +1,135 @@
-import { Injectable, ConflictException } from '@nestjs/common';
-import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import {
+  ConflictException,
+  ForbiddenException,
+  Injectable,
+  NotFoundException,
+} from '@nestjs/common';
 import * as bcrypt from 'bcryptjs';
-import { User } from './schemas/user.schema';
-import { CreateUserDto } from './dto/create-user.dto';
-import { Role } from '../common/enums/role.enum';
-// import { EmailService } from '../email/email.service';
+import { Model } from 'mongoose';
+import { InjectModel } from '@nestjs/mongoose';
+
+import { CreateUserDto } from '@users/dto/create-user.dto';
+import { UpdateUserDto } from '@users/dto/update-user.dto';
+import { User } from '@users/entities/user.entity';
+import { Role } from '@common/enums/role.enum';
+import { EmailService } from '@email/email.service';
+import { type ObjectId } from '@common/types/objectid.type';
+import {
+  PASSWORD_LENGTH,
+  BCRYPT_ROUNDS,
+  PASSWORD_CHARS,
+} from '@common/constants';
 
 @Injectable()
 export class UsersService {
-    constructor(
-        @InjectModel(User.name) private userModel: Model<User>,
-        // private readonly emailService: EmailService,
-    ) {}
+  constructor(
+    @InjectModel(User.name) private userModel: Model<User>,
+    private readonly emailService: EmailService,
+  ) {}
+  private generateRandomPassword(length = PASSWORD_LENGTH): string {
+    let password = '';
+    for (let i = 0; i < length; i++) {
+      password += PASSWORD_CHARS.charAt(
+        Math.floor(Math.random() * PASSWORD_CHARS.length),
+      );
+    }
+    return password;
+  }
 
-    private generateRandomPassword(length = 10): string {
-        const chars = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789!@#$%^&*()';
-        let password = '';
-        for (let i = 0; i < length; i++) {
-            password += chars.charAt(Math.floor(Math.random() * chars.length));
-        }
-        return password;
+  async create(createUserDto: CreateUserDto): Promise<User> {
+    const existingUser = await this.userModel.findOne({
+      email: createUserDto.email,
+    });
+    if (existingUser) {
+      throw new ConflictException('Email already exists');
     }
 
-    async create(createUserDto: CreateUserDto): Promise<User> {
-        const existingUser = await this.userModel.findOne({ email: createUserDto.email });
-        if (existingUser) {
-            throw new ConflictException('Email already exists');
-        }
+    const generatedPassword = this.generateRandomPassword();
+    const hashedPassword = await bcrypt.hash(generatedPassword, BCRYPT_ROUNDS);
 
-        const generatedPassword = this.generateRandomPassword();
-        const hashedPassword = await bcrypt.hash(generatedPassword, 10);
+    const user = new this.userModel({
+      ...createUserDto,
+      password: hashedPassword,
+      role: createUserDto.role || Role.STUDENT,
+    });
 
-        const user = new this.userModel({
-            ...createUserDto,
-            password: hashedPassword,
-            role: createUserDto.role || Role.STUDENT,
-        });
+    // Send password to user's email
+    await this.emailService.sendUserPassword(user.email, generatedPassword);
 
-        // Send password to user's email
-        // await this.emailService.sendUserPassword(user.email, generatedPassword);
+    return user.save();
+  }
 
-        return user.save();
+  findAll() {
+    return `This action returns all users`;
+  }
+
+  findOne(id: ObjectId) {
+    return `This action returns a #${id} user`;
+  }
+
+  async update(
+    id: ObjectId,
+    updateUserDto: UpdateUserDto,
+    currentUser: User,
+  ): Promise<User> {
+    const isOwner = currentUser._id.equals(id);
+    const isAdmin = currentUser.role === Role.ADMIN;
+
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('You cannot update this user');
     }
 
-    async findByEmail(email: string): Promise<User | null> {
-        return this.userModel.findOne({ email, isActive: true });
+    // Prevent regular users from changing their role
+    if (!isAdmin && 'role' in updateUserDto) {
+      throw new ForbiddenException('You cannot change your role');
     }
 
-    async findById(id: string): Promise<User | null> {
-        return this.userModel.findById(id);
+    if (isAdmin && !isOwner) {
+      if (
+        updateUserDto.password !== undefined ||
+        updateUserDto.email !== undefined ||
+        updateUserDto.firstName !== undefined ||
+        updateUserDto.lastName !== undefined
+      ) {
+        throw new ForbiddenException(
+          'Admins cannot update personal user fields (password, email, firstName, lastName)',
+        );
+      }
     }
+    if (updateUserDto.email) {
+      const existingUser = await this.userModel.findOne({
+        email: updateUserDto.email,
+      });
+
+      // If a user was found AND it's not the user we are currently updating
+      if (existingUser && !existingUser._id.equals(id)) {
+        throw new ConflictException('Email already in use');
+      }
+    }
+
+    // Hash password if updated
+    if (updateUserDto.password) {
+      updateUserDto.password = await bcrypt.hash(
+        updateUserDto.password,
+        BCRYPT_ROUNDS,
+      );
+    }
+    const updatedUser = await this.userModel
+      .findByIdAndUpdate(id, { $set: updateUserDto }, { new: true })
+      .exec();
+
+    if (!updatedUser) {
+      throw new NotFoundException(`User with ID #${id} not found`);
+    }
+
+    return updatedUser;
+  }
+
+  async remove(id: ObjectId, currentUser: User): Promise<User> {
+    return this.update(
+      id,
+      { deletedAt: new Date() } as UpdateUserDto,
+      currentUser,
+    );
+  }
 }
