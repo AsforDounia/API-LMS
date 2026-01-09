@@ -9,6 +9,7 @@ import { User, UserSchema } from './users/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
 import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
+import { FormateurModule } from './formateur/formateur.module';
 
 @Module({
   imports: [
@@ -17,7 +18,8 @@ import { QuestionModule } from './question/question.module';
     UsersModule,
     AuthModule,
     QuizModule,
-    QuestionModule
+    QuestionModule,
+    FormateurModule
   ],
   controllers: [AppController],
   providers: [AppService],
