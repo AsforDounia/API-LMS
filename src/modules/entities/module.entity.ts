@@ -7,7 +7,7 @@ export class Module {
     type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Course' }],
     required: true,
   })
-  coursesIds!: Types.ObjectId[];
+  courses!: Types.ObjectId[];
 
   @Prop({ required: true, trim: true })
   title!: string;

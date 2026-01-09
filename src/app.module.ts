@@ -9,6 +9,7 @@ import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
 import { CoursesModule } from './courses/courses.module';
 import { ModulesModule } from './modules/modules.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { ModulesModule } from './modules/modules.module';
     QuestionModule,
     CoursesModule,
     ModulesModule,
+    EnrollmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

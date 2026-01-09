@@ -1,16 +1,19 @@
 import { Types } from 'mongoose';
 import {
+    ArrayNotEmpty,
   IsArray,
   IsBoolean,
+  IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsString,
 } from 'class-validator';
 
 export class CreateModuleDto {
-  @IsArray()
-  @IsNotEmpty()
-  coursesIds!: Types.ObjectId[];
+    @IsArray()
+    @ArrayNotEmpty()
+    @IsMongoId({ each: true })
+  courses!: Types.ObjectId[];
 
   @IsString()
   @IsNotEmpty()
