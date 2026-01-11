@@ -3,13 +3,14 @@ import { AppController } from './app.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
-import { CommonModule } from './common/common.module';
 import { MongooseModule } from '@nestjs/mongoose';
-import { User, UserSchema } from './users/entities/user.entity';
 import { ConfigModule } from '@nestjs/config';
 import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
 import { FormateurModule } from './formateur/formateur.module';
+import { CoursesModule } from './courses/courses.module';
+import { ModulesModule } from './modules/modules.module';
+import { EnrollmentsModule } from './enrollments/enrollments.module';
 
 @Module({
   imports: [
@@ -19,7 +20,10 @@ import { FormateurModule } from './formateur/formateur.module';
     AuthModule,
     QuizModule,
     QuestionModule,
-    FormateurModule
+    FormateurModule,
+    CoursesModule,
+    ModulesModule,
+    EnrollmentsModule,
   ],
   controllers: [AppController],
   providers: [AppService],

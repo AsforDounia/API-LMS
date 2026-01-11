@@ -1,4 +1,11 @@
-import { Controller, Post, Body, Get, UseGuards, Headers } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  UseGuards,
+  Headers,
+} from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
@@ -22,9 +29,9 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(@Headers('authorization') authHeader: string, @CurrentUser() user: User) {
+  logout(@Headers('authorization') authHeader: string) {
     const token = authHeader?.replace('Bearer ', '');
-    return this.authService.logout(token, user);
+    return this.authService.logout(token);
   }
 
   @Get('profile')

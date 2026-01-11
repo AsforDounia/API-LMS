@@ -7,16 +7,17 @@ import { Question, QuestionSchema } from '../question/schema/question.schema';
 // import { RolesGuard } from './roles.guard';
 
 @Module({
-	imports: [
-		MongooseModule.forFeature([
-			{ name: Quiz.name, schema: QuizSchema },
-			{ name: Question.name, schema: QuestionSchema },
-		]),
-	],
-	controllers: [QuizController],
-	providers: [QuizService
-        // RolesGuard
-    ],
-	exports: [QuizService],
+  imports: [
+    MongooseModule.forFeature([
+      { name: Quiz.name, schema: QuizSchema },
+      { name: Question.name, schema: QuestionSchema },
+    ]),
+  ],
+  controllers: [QuizController],
+  providers: [
+    QuizService,
+    // RolesGuard
+  ],
+  exports: [QuizService],
 })
 export class QuizModule {}
