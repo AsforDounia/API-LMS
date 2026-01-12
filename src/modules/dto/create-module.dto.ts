@@ -10,10 +10,10 @@ import {
 } from 'class-validator';
 
 export class CreateModuleDto {
-    @IsArray()
-    @ArrayNotEmpty()
-    @IsMongoId({ each: true })
-  courses!: Types.ObjectId[];
+  @IsArray()
+  @ArrayNotEmpty()
+  @IsMongoId({ each: true })
+  course!: Types.ObjectId;
 
   @IsString()
   @IsNotEmpty()

@@ -4,10 +4,10 @@ import { Schema as MongooseSchema, Types } from 'mongoose';
 @Schema({ timestamps: true })
 export class Module {
   @Prop({
-    type: [{ type: MongooseSchema.Types.ObjectId, ref: 'Course' }],
+    type: { type: MongooseSchema.Types.ObjectId, ref: 'Course' },
     required: true,
   })
-  courses!: Types.ObjectId[];
+  course!: Types.ObjectId;
 
   @Prop({ required: true, trim: true })
   title!: string;
@@ -23,6 +23,9 @@ export class Module {
 
   @Prop({ default: false })
   isPublished!: boolean;
+
+  @Prop({ default: null })
+  deletedAt: Date;
 }
 
 export const ModuleSchema = SchemaFactory.createForClass(Module);
