@@ -13,12 +13,38 @@ import { EnrolledLearnerDto } from './dto/enrolled-learner.dto';
 @Roles(Role.TEACHER)
 export class FormateurController {
   constructor(private readonly formateurService: FormateurService) {}
+@Get('my-courses')
+  async getMyCourses(@CurrentUser() user: User) {
+    const courses =
+      await this.formateurService.getMyCourses(
+        user._id.toString(),
+      );
 
+    return {
+      message: 'Courses retrieved successfully',
+      data: courses,
+    };
+  }
   @Get('enrolled-learners')
   async getEnrolledLearners(@CurrentUser() user: User): Promise<{ message: string; data: EnrolledLearnerDto[] }> {
     const learners = await this.formateurService.getEnrolledLearners(user._id.toString());
     return { message: 'Enrolled learners retrieved', data: learners };
   }
-  // New endpoint for US-7.2: View learner progress
+   @Get('courses/:courseId/students')
+  async getStudentsByCourse(
+    @Param('courseId') courseId: string,
+    @CurrentUser() user: User,
+  ) {
+    const students =
+      await this.formateurService.getStudentsByCourse(
+        courseId,
+        user._id.toString(),
+      );
+
+    return {
+      message: 'Students retrieved successfully',
+      data: students,
+    };
+  }
   
 }
