@@ -126,6 +126,11 @@ export class UsersService {
   }
 
   async remove(id: ObjectId, currentUser: User): Promise<User> {
+    const isOwner = currentUser._id.equals(id);
+    const isAdmin = currentUser.role === Role.ADMIN;
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('You cannot delete this user');
+    }
     return this.update(
       id,
       { deletedAt: new Date() } as UpdateUserDto,
