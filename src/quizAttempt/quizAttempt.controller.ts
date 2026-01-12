@@ -1,17 +1,18 @@
-import { Module } from '@nestjs/common';
-import { MongooseModule } from '@nestjs/mongoose';
-import { QuizAttempt, QuizAttemptSchema } from './schema/quizAttempt.schema';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { QuizAttemptService } from './quizAttempt.service';
-import { QuizAttemptController } from './quizAttempt.controller';
+import { CreateQuizAttemptDto } from './dto/quizAttempt.dto';
 
-@Module({
-  imports: [
-    MongooseModule.forFeature([
-      { name: QuizAttempt.name, schema: QuizAttemptSchema },
-    ]),
-  ],
-  controllers: [QuizAttemptController],
-  providers: [QuizAttemptService],
-  exports: [QuizAttemptService],
-})
-export class QuizAttemptModule {}
+@Controller('quiz-attempts')
+export class QuizAttemptController {
+  constructor(private readonly quizAttemptService: QuizAttemptService) {}
+
+  @Post()
+  async create(@Body() createQuizAttemptDto: CreateQuizAttemptDto) {
+    return this.quizAttemptService.create(createQuizAttemptDto);
+  }
+
+  @Get('/quiz/:quizId/attempts')
+  async getAttemptsByQuiz(@Param('quizId') quizId: string) {
+    return this.quizAttemptService.getAttemptsByQuiz(quizId);
+  }
+}
