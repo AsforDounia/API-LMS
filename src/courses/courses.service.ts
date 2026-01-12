@@ -22,12 +22,14 @@ export class CoursesService {
     return course.save();
   }
 
-  findAll() {
-    return `This action returns all courses`;
+  async findAll(): Promise<Course[]> {
+    // Exclude soft-deleted courses
+    return this.courseModel.find({ deletedAt: { $exists: false } }).exec();
   }
 
-  findOne(id: number) {
-    return `This action returns a #${id} course`;
+  async findOne(id: ObjectId): Promise<Course | null> {
+    // Exclude soft-deleted courses
+    return this.courseModel.findOne({ _id: id, deletedAt: { $exists: false } }).exec();
   }
 
   async update(id: ObjectId, updateCourseDto: UpdateCourseDto, user: User): Promise<Course> {

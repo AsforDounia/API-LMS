@@ -44,8 +44,8 @@ export class CoursesController {
   }
 
   @Get(':id')
-  findOne(@Param('id') id: string) {
-    return this.coursesService.findOne(+id);
+  findOne(@Param('id', ParseObjectIdPipe) id: ObjectId) {
+    return this.coursesService.findOne(id);
   }
 
   @Patch(':id')
