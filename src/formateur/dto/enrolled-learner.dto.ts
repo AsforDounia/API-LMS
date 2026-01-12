@@ -1,8 +1,12 @@
-// filepath: src/formateur/dto/enrolled-learner.dto.ts
+export class EnrolledCourseDto {
+  courseId: string;
+  courseTitle: string;
+}
+
 export class EnrolledLearnerDto {
   learnerId: string;
   email: string;
   firstName: string;
   lastName: string;
-  enrolledCourses: { courseId: string; courseTitle: string }[];
+  enrolledCourses: EnrolledCourseDto[];
 }
