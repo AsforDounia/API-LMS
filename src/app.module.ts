@@ -10,6 +10,7 @@ import { ConfigModule } from '@nestjs/config';
 import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
 import { QuizAttemptModule } from './quizAttempt/quizAttempt.module';
+import { AnswerModule } from './answer/answer.module';
 
 @Module({
   imports: [
@@ -20,6 +21,7 @@ import { QuizAttemptModule } from './quizAttempt/quizAttempt.module';
     QuizModule,
     QuestionModule,
     QuizAttemptModule,
+    AnswerModule,
   ],
   controllers: [AppController],
   providers: [AppService],
