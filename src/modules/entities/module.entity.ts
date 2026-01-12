@@ -3,10 +3,7 @@ import { Schema as MongooseSchema, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Module {
-  @Prop({
-    type: { type: MongooseSchema.Types.ObjectId, ref: 'Course' },
-    required: true,
-  })
+  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Course', required: true })
   course!: Types.ObjectId;
 
   @Prop({ required: true, trim: true })
