@@ -10,6 +10,7 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { Enrollment, EnrollmentSchema } from 'src/enrollments/entities/enrollment.entity';
 import { Course, CourseSchema } from 'src/courses/entities/course.entity';
 import { QuizAttempt, QuizAttemptSchema } from 'src/quizAttempt/schema/quizAttempt.schema';  
+import { ModuleProgress, ModuleProgressSchema } from 'src/module-progress/entities/module-progress.entity';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { QuizAttempt, QuizAttemptSchema } from 'src/quizAttempt/schema/quizAttem
       { name: Enrollment.name, schema: EnrollmentSchema },
       { name: Course.name, schema: CourseSchema },
       { name: QuizAttempt.name, schema: QuizAttemptSchema },
+         { name: ModuleProgress.name, schema: ModuleProgressSchema },
     ]),
   ],
   controllers: [FormateurController],
