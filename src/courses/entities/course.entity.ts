@@ -14,6 +14,9 @@ export class Course {
 
   @Prop({ default: false })
   isPublished!: boolean;
+
+  @Prop({ default: null })
+  deletedAt: Date;
 }
 
 export const CourseSchema = SchemaFactory.createForClass(Course);
