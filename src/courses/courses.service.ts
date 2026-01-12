@@ -56,6 +56,10 @@ export class CoursesService {
     return course.save();
   }
 
+  async findPublished(): Promise<Course[]> {
+    return this.courseModel.find({ isPublished: true, deletedAt: { $exists: false } }).exec();
+  }
+
   async remove(id: ObjectId, user: User): Promise<{ deleted: boolean; course: Course | null }> {
     const course = await this.courseModel.findById(id);
     if (!course) {
@@ -69,7 +73,6 @@ export class CoursesService {
     }
     // Soft delete: set deletedAt
     await this.courseModel.updateOne({ _id: id }, { deletedAt: new Date() });
-    // Return the course data (with deletedAt set)
     const deletedCourse = await this.courseModel.findById(id);
     return { deleted: true, course: deletedCourse };
   }

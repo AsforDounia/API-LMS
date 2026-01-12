@@ -37,6 +37,12 @@ export class CoursesController {
     return this.coursesService.findAll();
   }
 
+  @Get('published')
+  @Roles(Role.STUDENT)
+  findPublished() {
+    return this.coursesService.findPublished();
+  }
+
   @Get(':id')
   findOne(@Param('id') id: string) {
     return this.coursesService.findOne(+id);
