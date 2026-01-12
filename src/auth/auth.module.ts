@@ -9,7 +9,10 @@ import { AuthController } from './auth.controller';
 import { User, UserSchema } from '../users/entities/user.entity';
 import { JwtStrategy } from './strategies/jwt.strategy';
 import { TokenBlacklistService } from './token-blacklist.service';
-import { TokenBlacklist, TokenBlacklistSchema } from './schemas/token-blacklist.schema';
+import {
+  TokenBlacklist,
+  TokenBlacklistSchema,
+} from './schemas/token-blacklist.schema';
 
 @Module({
   imports: [

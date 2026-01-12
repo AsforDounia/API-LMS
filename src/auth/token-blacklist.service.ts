@@ -1,12 +1,16 @@
 import { Injectable } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model } from 'mongoose';
-import { TokenBlacklist, TokenBlacklistDocument } from './schemas/token-blacklist.schema';
+import {
+  TokenBlacklist,
+  TokenBlacklistDocument,
+} from './schemas/token-blacklist.schema';
 
 @Injectable()
 export class TokenBlacklistService {
   constructor(
-    @InjectModel(TokenBlacklist.name) private tokenBlacklistModel: Model<TokenBlacklistDocument>,
+    @InjectModel(TokenBlacklist.name)
+    private tokenBlacklistModel: Model<TokenBlacklistDocument>,
   ) {}
 
   async blacklistToken(token: string, expiresAt: Date): Promise<void> {
