@@ -22,7 +22,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     QuizModule,
     QuestionModule,
     QuizAttemptModule,
-    AnswerModule,,
+    AnswerModule,
     CoursesModule,
     ModulesModule,
     EnrollmentsModule,
