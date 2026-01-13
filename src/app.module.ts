@@ -7,9 +7,11 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { ConfigModule } from '@nestjs/config';
 import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
+import { FormateurModule } from './formateur/formateur.module';
 import { CoursesModule } from './courses/courses.module';
 import { ModulesModule } from './modules/modules.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
+import { ModuleProgressModule } from './module-progress/module-progress.module';
 
 @Module({
   imports: [
@@ -19,9 +21,11 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     AuthModule,
     QuizModule,
     QuestionModule,
+    FormateurModule,
     CoursesModule,
     ModulesModule,
     EnrollmentsModule,
+    ModuleProgressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
