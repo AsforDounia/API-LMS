@@ -66,4 +66,34 @@ export class CoursesController {
   ) {
     return this.coursesService.remove(id, user);
   }
+
+  // @Get(':id/progress/:apprenantId')
+  // async getCourseProgress(
+  //   @Param('id', ParseObjectIdPipe) courseId: ObjectId,
+  //   @Param('apprenantId', ParseObjectIdPipe) apprenantId: ObjectId,
+  // ) {
+  //   return this.coursesService.getCourseProgress(courseId, apprenantId);
+  // }
+
+  @Get(':courseId/resume')
+    @Roles(Role.STUDENT)
+  async resumeCourse(
+    @Param('courseId', ParseObjectIdPipe) courseId: string,
+    @CurrentUser() user: User,
+  ) {
+    return this.coursesService.getResumeModule(new Types.ObjectId(courseId), user._id);
+  }
+
+  @Get(':id/calculate-progress/:apprenantId')
+    @Roles(Role.STUDENT)
+  async calculateCourseProgress(
+    @Param('id', ParseObjectIdPipe) courseId: ObjectId,
+    @Param('apprenantId', ParseObjectIdPipe) apprenantId: ObjectId,
+  ) {
+    const progress = await this.coursesService.calculateCourseProgress(courseId, apprenantId);
+    return {
+      courseId,
+      apprenantId,
+      progressPercentage: progress,
+    };}
 }

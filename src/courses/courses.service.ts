@@ -1,16 +1,33 @@
-import { ForbiddenException, Injectable } from '@nestjs/common';
+import { ForbiddenException, Injectable, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateCourseDto } from './dto/create-course.dto';
 import { UpdateCourseDto } from './dto/update-course.dto';
 import { Course } from './entities/course.entity';
 import type { ObjectId } from '@common/types/objectid.type';
 import { User } from '@users/entities/user.entity';
 import { Role } from '@src/common/enums/role.enum';
+import { Module } from '@src/modules/entities/module.entity';
+import { ModuleProgress } from '@src/module-progress/entities/module-progress.entity';
+import { Enrollment } from '@src/enrollments/entities/enrollment.entity';
+
+
 
 @Injectable()
 export class CoursesService {
-  constructor(@InjectModel(Course.name) private courseModel: Model<Course>) {}
+  constructor(
+    @InjectModel(Course.name)
+    private readonly courseModel: Model<Course>,
+
+    @InjectModel(Module.name)
+    private readonly moduleModel: Model<Module>,
+
+    @InjectModel(ModuleProgress.name)
+    private readonly moduleProgressModel: Model<ModuleProgress>,
+
+    @InjectModel(Enrollment.name)
+    private readonly enrollmentModel: Model<Enrollment>,
+  ) { }
 
   async create(createCourseDto: CreateCourseDto, user: User): Promise<Course> {
     const course = new this.courseModel({
@@ -78,4 +95,99 @@ export class CoursesService {
     const deletedCourse = await this.courseModel.findById(id);
     return { deleted: true, course: deletedCourse };
   }
+
+  // async getCourseProgress(courseId: Types.ObjectId, apprenantId: Types.ObjectId): Promise<number> {
+
+  //   const modules = await this.moduleModel.find({ course: courseId, deletedAt: { $exists: false } }).exec();
+  //   if (!modules.length) return 0;
+
+  //   const moduleIds = modules.map(m => m._id);
+  //   const progresses = await this.moduleProgressModel.find({
+  //     moduleId: { $in: moduleIds },
+  //     apprenantId,
+  //   }).exec();
+
+  //   let total = 0;
+  //   for (const module of modules) {
+  //     const progress = progresses.find(p => p.moduleId.equals(module._id));
+  //     total += progress ? (progress.progressPercentage || 0) : 0;
+  //   }
+  //   return Math.round(total / modules.length);
+  // }
+
+  // async getAllLearnersProgress(courseId: Types.ObjectId) {
+  //   const enrollments = await this.enrollmentModel.find({ course: courseId }).exec();
+  //   return Promise.all(enrollments.map(async (enr) => ({
+  //     apprenantId: enr.student,
+  //     progress: await this.getCourseProgress(courseId, enr.student),
+  //   })));
+  // }
+
+  async getResumeModule(courseId: Types.ObjectId, apprenantId: Types.ObjectId) {
+
+    const modules = await this.moduleModel
+      .find({
+        course: courseId,
+        isPublished: true,
+        deletedAt: null,
+      })
+      .sort({ order: 1 })
+      .exec();
+
+    if (!modules.length) {
+      throw new NotFoundException('Aucun module trouvé pour ce cours');
+    }
+
+    const progresses = await this.moduleProgressModel
+      .find({
+        apprenantId,
+        moduleId: { $in: modules.map(m => m._id) },
+      })
+      .exec();
+    for (const module of modules) {
+      const progress = progresses.find((p) => p.moduleId.equals(module._id));
+
+      if (!progress) {
+        return module;
+      }
+
+      const isCompleted =
+        progress.status === 'completed' || progress.progressPercentage === 100;
+
+      if (isCompleted) {
+        continue;
+      }
+      return module;
+    }
+    return modules[modules.length - 1];
+  }
+
+  async calculateCourseProgress(courseId: Types.ObjectId, apprenantId: Types.ObjectId): Promise<number> {
+
+    const totalModules = await this.moduleModel.countDocuments({
+      course: courseId,
+      isPublished: true,
+      deletedAt: null,
+    });
+
+    if (totalModules === 0) return 0;
+
+    const userProgress = await this.moduleProgressModel.find({
+      apprenantId,
+    }).exec();
+
+    const courseModules = await this.moduleModel.find({ course: courseId }).select('_id');
+    const courseModuleIds = courseModules.map(m => m._id.toString());
+    
+    const relevantProgress = userProgress.filter(p => 
+      courseModuleIds.includes(p.moduleId.toString())
+    );
+
+    const totalProgress = relevantProgress.reduce((acc, curr) => acc + curr.progressPercentage, 0);
+
+    const overallProgress = Math.round(totalProgress / totalModules);
+
+    return overallProgress;
+  }
+
 }

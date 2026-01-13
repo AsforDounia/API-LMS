@@ -8,12 +8,14 @@ import { InjectModel as InjectCourseModel } from '@nestjs/mongoose';
 import { type ObjectId } from '@src/common/types/objectid.type';
 import { User } from '@src/users/entities/user.entity';
 import { Role } from '@src/common/enums/role.enum';
+import { ModuleProgress } from '../module-progress/entities/module-progress.entity';
 
 @Injectable()
 export class ModulesService {
   constructor(
     @InjectModel(Module.name) private readonly moduleModel: Model<Module>,
     @InjectCourseModel('Course') private readonly courseModel: Model<any>,
+    @InjectModel(ModuleProgress.name) private readonly moduleProgressModel: Model<ModuleProgress>, // AJOUTE ICI
   ) {}
 
   async create(createModuleDto: CreateModuleDto) {
