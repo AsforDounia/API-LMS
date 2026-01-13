@@ -11,6 +11,7 @@ import { FormateurModule } from './formateur/formateur.module';
 import { CoursesModule } from './courses/courses.module';
 import { ModulesModule } from './modules/modules.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
+import { ModuleProgressModule } from './module-progress/module-progress.module';
 
 @Module({
   imports: [
@@ -24,6 +25,7 @@ import { EnrollmentsModule } from './enrollments/enrollments.module';
     CoursesModule,
     ModulesModule,
     EnrollmentsModule,
+    ModuleProgressModule,
   ],
   controllers: [AppController],
   providers: [AppService],
