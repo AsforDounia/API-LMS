@@ -1,10 +1,9 @@
 # Image Node officielle
 FROM node:20-alpine
 
-# Dossier de travail
 WORKDIR /app
 
-# Copier package.json
+# Copier package.json + package-lock.json
 COPY package*.json ./
 
 # Installer dépendances
@@ -16,8 +15,7 @@ COPY . .
 # Build NestJS
 RUN npm run build
 
-# Exposer le port
 EXPOSE 3000
 
-# Lancer l’API
-CMD ["npm", "run", "start:prod"]
+# Lancer en dev pour recharger automatiquement
+CMD ["npm", "run", "start:dev"]
