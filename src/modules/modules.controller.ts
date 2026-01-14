@@ -54,4 +54,23 @@ export class ModulesController {
   ) {
     return this.modulesService.remove(id, user);
   }
+
+  @Get(':id/can-access/:apprenantId')
+  @Roles(Role.STUDENT)
+  async canAccessModule(
+    @Param('id', ParseObjectIdPipe) moduleId: ObjectId,
+    @Param('apprenantId', ParseObjectIdPipe) apprenantId: ObjectId,
+  ) {
+    const canAccess = await this.modulesService.canAccessModule(apprenantId, moduleId);
+    return { moduleId, apprenantId, canAccess };
+  }
+
+  @Get(':id/access/:apprenantId')
+  @Roles(Role.STUDENT)
+  async accessModule(
+    @Param('id', ParseObjectIdPipe) moduleId: ObjectId,
+    @Param('apprenantId', ParseObjectIdPipe) apprenantId: ObjectId,
+  ) {
+    return this.modulesService.accessModule(apprenantId, moduleId);
+  }
 }

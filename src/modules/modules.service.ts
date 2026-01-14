@@ -1,6 +1,6 @@
-import { Injectable, BadRequestException, ForbiddenException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
-import { Model } from 'mongoose';
+import { Model, Types } from 'mongoose';
 import { CreateModuleDto } from './dto/create-module.dto';
 import { UpdateModuleDto } from './dto/update-module.dto';
 import { Module } from './entities/module.entity';
@@ -86,5 +86,60 @@ export class ModulesService {
     await this.moduleModel.updateOne({ _id: id }, { deletedAt: new Date() });
     const deletedModule = await this.moduleModel.findById(id);
     return { deleted: true, module: deletedModule };
+  }
+
+  async canAccessModule(apprenantId: Types.ObjectId, moduleId: Types.ObjectId): Promise<boolean> {
+    const module = await this.moduleModel.findById(moduleId);
+    if (!module) throw new NotFoundException('Module not found');
+
+    const modules = await this.moduleModel.find({
+      course: module.course,
+      isPublished: true,
+      deletedAt: null,
+    }).sort({ order: 1 }).exec();
+
+    const currentIndex = modules.findIndex(m => m._id.equals(moduleId));
+    if (currentIndex === -1) throw new NotFoundException('Module not found in course');
+
+    for (let i = 0; i < currentIndex; i++) {
+      const progress = await this.moduleProgressModel.findOne({
+        apprenantId,
+        moduleId: modules[i]._id,
+      });
+      if (!progress || progress.status !== 'completed') {
+        return false;
+      }
+    }
+    return true;
+  }
+
+  async accessModule(apprenantId: Types.ObjectId, moduleId: Types.ObjectId) {
+    const canAccess = await this.canAccessModule(apprenantId, moduleId);
+    if (!canAccess) {
+      throw new ForbiddenException('Module locked: prerequisites not completed');
+    }
+    
+    return { success: true, message: 'Module accessible', module: await this.findOne(moduleId) };
+  }
+
+ 
+  async unlockNextModule(apprenantId: Types.ObjectId, moduleId: Types.ObjectId) {
+    const module = await this.moduleModel.findById(moduleId);
+    if (!module) return;
+
+    const nextModule = await this.moduleModel.findOne({
+      course: module.course,
+      order: module.order + 1,
+      isPublished: true,
+      deletedAt: null,
+    });
+
+    if (nextModule) {
+      await this.moduleProgressModel.updateOne(
+        { apprenantId, moduleId: nextModule._id },
+        { $set: { isLocked: false } },
+        { upsert: true }
+      );
+    }
   }
 }
