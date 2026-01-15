@@ -7,6 +7,7 @@ import {
   Put,
   Delete,
   NotFoundException,
+  Patch,
 } from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
@@ -32,7 +33,7 @@ export class QuestionController {
     return question;
   }
 
-  @Put(':id')
+  @Patch(':id')
   async updateQuestion(
     @Param('id') id: string,
     @Body() updateDto: Partial<CreateQuestionDto>,

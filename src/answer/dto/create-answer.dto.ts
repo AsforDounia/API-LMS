@@ -1,9 +1,10 @@
-import { IsMongoId, IsArray, IsString } from 'class-validator';
+import { IsMongoId, IsArray, IsInt ,ArrayNotEmpty} from 'class-validator';
 
 export class CreateAnswerDto {
   @IsArray()
-  @IsString({ each: true })
-  selectedAnswers: string[];
+  @ArrayNotEmpty()
+  @IsInt({ each: true })
+  selectedAnswers: number[];
 
   @IsMongoId()
   attemptId: string;
