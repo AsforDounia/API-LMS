@@ -17,7 +17,7 @@ import { QuestionModule } from './question/question.module';
     UsersModule,
     AuthModule,
     QuizModule,
-    QuestionModule
+    QuestionModule,
   ],
   controllers: [AppController],
   providers: [AppService],

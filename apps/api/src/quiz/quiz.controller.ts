@@ -8,13 +8,13 @@ import { CreateQuestionDto } from '../question/dto/create-question.dto';
 export class QuizController {
   constructor(private readonly quizService: QuizService) {}
 
-//   @UseGuards(RolesGuard)
+  //   @UseGuards(RolesGuard)
   @Post()
   async createQuiz(@Body() createQuizDto: CreateQuizDto) {
     return this.quizService.createQuiz(createQuizDto);
   }
 
-//   @UseGuards(RolesGuard)
+  //   @UseGuards(RolesGuard)
   @Post(':quizId/questions')
   async addQuestion(
     @Param('quizId') quizId: string,
@@ -23,10 +23,10 @@ export class QuizController {
     return this.quizService.addQuestion({ ...createQuestionDto, quizId });
   }
 
-//   @Get(':id')
-//   async getQuizById(@Param('id') id: string) {
-//     return this.quizService.getQuizById(id);
-//   }
+  //   @Get(':id')
+  //   async getQuizById(@Param('id') id: string) {
+  //     return this.quizService.getQuizById(id);
+  //   }
 
   @Get(':quizId/questions')
   async getQuestionsByQuiz(@Param('quizId') quizId: string) {

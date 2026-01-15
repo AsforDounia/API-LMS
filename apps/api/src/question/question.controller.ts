@@ -1,4 +1,13 @@
-import { Controller, Post, Body, Get, Param, Put, Delete, NotFoundException } from '@nestjs/common';
+import {
+  Controller,
+  Post,
+  Body,
+  Get,
+  Param,
+  Put,
+  Delete,
+  NotFoundException,
+} from '@nestjs/common';
 import { QuestionService } from './question.service';
 import { CreateQuestionDto } from './dto/create-question.dto';
 
@@ -24,7 +33,10 @@ export class QuestionController {
   }
 
   @Put(':id')
-  async updateQuestion(@Param('id') id: string, @Body() updateDto: Partial<CreateQuestionDto>) {
+  async updateQuestion(
+    @Param('id') id: string,
+    @Body() updateDto: Partial<CreateQuestionDto>,
+  ) {
     const updated = await this.questionService.updateQuestion(id, updateDto);
     if (!updated) throw new NotFoundException('Question not found');
     return updated;

@@ -1,4 +1,8 @@
-import { ConflictException, Injectable, UnauthorizedException } from '@nestjs/common';
+import {
+  ConflictException,
+  Injectable,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
@@ -28,13 +32,22 @@ export class AuthService {
     return this.jwtService.sign(payload);
   }
 
-  async register(registerDto: RegisterDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
-    const existingUser = await this.userModel.findOne({ email: registerDto.email });
+  async register(
+    registerDto: RegisterDto,
+  ): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
+    const existingUser = await this.userModel.findOne({
+      email: registerDto.email,
+    });
     if (existingUser) {
-      throw new ConflictException('An account with this email address already exists. Please use a different email or try logging in.');
+      throw new ConflictException(
+        'An account with this email address already exists. Please use a different email or try logging in.',
+      );
     }
 
-    const hashedPassword = await bcrypt.hash(registerDto.password, BCRYPT_ROUNDS);
+    const hashedPassword = await bcrypt.hash(
+      registerDto.password,
+      BCRYPT_ROUNDS,
+    );
 
     const user = new this.userModel({
       ...registerDto,
@@ -58,23 +71,36 @@ export class AuthService {
     };
   }
 
-  async login(loginDto: LoginDto): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
+  async login(
+    loginDto: LoginDto,
+  ): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
     const user = await this.userModel.findOne({ email: loginDto.email });
     if (!user) {
-      throw new UnauthorizedException('Invalid email or password. Please check your credentials and try again.');
+      throw new UnauthorizedException(
+        'Invalid email or password. Please check your credentials and try again.',
+      );
     }
 
     if (user.deletedAt) {
-      throw new UnauthorizedException('This account has been deleted. Please contact support if you believe this is an error.');
+      throw new UnauthorizedException(
+        'This account has been deleted. Please contact support if you believe this is an error.',
+      );
     }
 
     if (!user.isActive) {
-      throw new UnauthorizedException('Your account has been deactivated. Please contact support to reactivate your account.');
+      throw new UnauthorizedException(
+        'Your account has been deactivated. Please contact support to reactivate your account.',
+      );
     }
 
-    const isPasswordValid = await bcrypt.compare(loginDto.password, user.password);
+    const isPasswordValid = await bcrypt.compare(
+      loginDto.password,
+      user.password,
+    );
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Invalid email or password. Please check your credentials and try again.');
+      throw new UnauthorizedException(
+        'Invalid email or password. Please check your credentials and try again.',
+      );
     }
 
     const accessToken = this.generateToken(user);
