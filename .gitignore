@@ -3,7 +3,7 @@
 /node_modules
 /build
 /dist
-
+/apps/api/dist
 # Logs
 logs
 *.log
