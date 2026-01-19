@@ -1,4 +1,4 @@
-import { IsMongoId, IsArray, IsString, ValidateNested } from 'class-validator';
+import { IsMongoId, IsArray, IsInt, ValidateNested } from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SubmitAnswerDto {
@@ -6,8 +6,8 @@ export class SubmitAnswerDto {
   questionId: string;
 
   @IsArray()
-  @IsString({ each: true })
-  selectedAnswers: string[];
+  @IsInt({ each: true })
+  selectedAnswers: number[];
 }
 
 export class SubmitQuizDto {

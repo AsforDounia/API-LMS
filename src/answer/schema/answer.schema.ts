@@ -3,8 +3,8 @@ import { Document, Types } from 'mongoose';
 
 @Schema({ timestamps: true })
 export class Answer extends Document {
-  @Prop({ type: [String], required: true })
-  selectedAnswers: string[];
+  @Prop({ type: [Number], required: true })
+  selectedAnswers: number[];
 
   @Prop({ required: true })
   isCorrect: boolean;

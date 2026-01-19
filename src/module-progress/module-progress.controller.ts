@@ -1,6 +1,7 @@
 import { Controller, Post, Body, Param } from '@nestjs/common';
 import { ModuleProgressService } from './module-progress.service';
 import { Types } from 'mongoose';
+import { CreateModuleProgressDto } from './dto/create-module-progress.dto';
 
 @Controller('module-progress')
 export class ModuleProgressController {
@@ -9,13 +10,7 @@ export class ModuleProgressController {
   @Post(':moduleId')
   async updateProgress(
     @Param('moduleId') moduleId: string,
-    @Body() body: {
-      apprenantId: string;
-      enrollmentId: string;
-      progressPercentage: number;
-      status: string;
-      isLocked: boolean;
-    },
+    @Body() body: CreateModuleProgressDto,
   ) {
     return this.moduleProgressService.updateOrCreate(
       new Types.ObjectId(body.apprenantId),
