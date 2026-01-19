@@ -15,4 +15,13 @@ export class QuizAttemptController {
   async getAttemptsByQuiz(@Param('quizId') quizId: string) {
     return this.quizAttemptService.getAttemptsByQuiz(quizId);
   }
+  @Get('/attempt/:attemptId')
+  async getAttemptById(@Param('attemptId') attemptId: string) {
+    return this.quizAttemptService.getAttemptById(attemptId);
+  }
+
+  @Post('/attempt/:attemptId/finalize')
+  async finalizeAttempt(@Param('attemptId') attemptId: string) {
+    return this.quizAttemptService.finalizeAttempt(attemptId);
+  }
 }

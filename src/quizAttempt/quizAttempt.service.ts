@@ -16,20 +16,36 @@ export class QuizAttemptService {
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Answer.name) private readonly answerModel: Model<Answer>,
     @InjectModel(Question.name) private readonly questionModel: Model<Question>,
-  ) {}
+  ) { }
 
   async create(createQuizAttemptDto: CreateQuizAttemptDto): Promise<QuizAttempt> {
-    // Vérification de l'existence du quiz
-    const quiz = await this.quizModel.findById(createQuizAttemptDto.quizId);
-    if (!quiz) {
-      throw new NotFoundException('Quiz non trouvé');
-    }
+
+    const { quizId, apprenantId } = createQuizAttemptDto;
+
+    // Vérifier quiz et utilisateur
+    const quiz = await this.quizModel.findById(quizId);
+    if (!quiz) throw new NotFoundException('Quiz non trouvé');
     // Vérification de l'existence de l'utilisateur
     const user = await this.userModel.findById(createQuizAttemptDto.apprenantId);
     if (!user) {
       throw new NotFoundException('Apprenant non trouvé');
     }
-    const attempt = new this.quizAttemptModel(createQuizAttemptDto);
+    // const attempt = new this.quizAttemptModel(createQuizAttemptDto);
+    // return attempt.save();
+
+    const previousAttempts = await this.quizAttemptModel.countDocuments({ quizId, apprenantId });
+    const attemptNumber = previousAttempts + 1;
+
+    const attempt = new this.quizAttemptModel({
+      quizId,
+      apprenantId,
+      startedAt: new Date(),
+      completedAt: null,
+      score: 0,
+      passed: false,
+      attemptNumber,
+    });
+
     return attempt.save();
   }
 
@@ -74,5 +90,9 @@ export class QuizAttemptService {
 
   async getAttemptsByQuiz(quizId: string): Promise<QuizAttempt[]> {
     return this.quizAttemptModel.find({ quizId }).exec();
+  }
+
+  async getAttemptById(attemptId: string): Promise<QuizAttempt | null> {
+    return this.quizAttemptModel.findById(attemptId).exec();
   }
 }
