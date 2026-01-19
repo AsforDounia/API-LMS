@@ -9,6 +9,7 @@ import { QuizModule } from './quiz/quiz.module';
 import { QuestionModule } from './question/question.module';
 import { QuizAttemptModule } from './quizAttempt/quizAttempt.module';
 import { AnswerModule } from './answer/answer.module';
+import { FormateurModule } from './formateur/formateur.module';
 import { CoursesModule } from './courses/courses.module';
 import { ModulesModule } from './modules/modules.module';
 import { EnrollmentsModule } from './enrollments/enrollments.module';
@@ -24,6 +25,7 @@ import { ModuleProgressModule } from './module-progress/module-progress.module';
     QuestionModule,
     QuizAttemptModule,
     AnswerModule,
+    FormateurModule,
     CoursesModule,
     ModulesModule,
     EnrollmentsModule,
