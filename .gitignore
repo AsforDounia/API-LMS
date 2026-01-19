@@ -47,6 +47,12 @@ lerna-debug.log*
 .temp
 .tmp
 
+# Turbo
+.turbo
+
+# Next.js
+.next
+
 # Runtime data
 pids
 *.pid
