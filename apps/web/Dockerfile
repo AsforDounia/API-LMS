@@ -1,15 +1,16 @@
-FROM node:22-alpine
+FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json ./
-
-RUN npm install
-
+# Copy the entire monorepo
 COPY . .
 
-RUN npm run build
+# Install dependencies
+RUN npm install
 
-EXPOSE 3000
+# Build the Web app
+RUN npx turbo run build --filter=web
 
-CMD ["npm", "start"]
+# Run the Web app
+ENV PORT=3002
+CMD ["npm", "run", "start", "-w", "apps/web"]
