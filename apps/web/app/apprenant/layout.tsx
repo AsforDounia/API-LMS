@@ -1,6 +1,6 @@
 'use client';
 
-export default function TrainerLayout({
+export default function ApprenantLayout({
     children,
 }: {
     children: React.ReactNode;
@@ -8,7 +8,7 @@ export default function TrainerLayout({
     return (
             <div className="min-h-screen bg-background flex">
                 <main className="flex-1 overflow-auto">
-                    <div className="p-8 max-w-7xl mx-auto">
+                    <div className="mx-auto">
                         {children}
                     </div>
                 </main>
