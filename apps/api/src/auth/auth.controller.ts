@@ -3,19 +3,21 @@ import {
   Post,
   Body,
   Get,
+  Patch,
   UseGuards,
   Headers,
 } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { JwtAuthGuard } from './guards/jwt-auth.guard';
 import { CurrentUser } from './decorators/current-user.decorator';
 import { User } from '@users/entities/user.entity';
 
 @Controller('auth')
 export class AuthController {
-  constructor(private readonly authService: AuthService) {}
+  constructor(private readonly authService: AuthService) { }
 
   @Post('register')
   register(@Body() registerDto: RegisterDto) {
@@ -29,23 +31,30 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(
-    @Headers('authorization') authHeader: string,
-    @CurrentUser() user: User,
-  ) {
+  logout(@Headers('authorization') authHeader: string) {
     const token = authHeader?.replace('Bearer ', '');
-    return this.authService.logout(token, user);
+    return this.authService.logout(token);
   }
 
   @Get('profile')
   @UseGuards(JwtAuthGuard)
   getProfile(@CurrentUser() user: User) {
     return {
+      _id: user._id,
       email: user.email,
       firstName: user.firstName,
       lastName: user.lastName,
       profilePicture: user.profilePicture,
       role: user.role,
     };
+  }
+
+  @Patch('profile')
+  @UseGuards(JwtAuthGuard)
+  updateProfile(
+    @CurrentUser() user: User,
+    @Body() updateProfileDto: UpdateProfileDto,
+  ) {
+    return this.authService.updateProfile(user, updateProfileDto);
   }
 }

@@ -16,6 +16,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
     const request = context.switchToHttp().getRequest();
     const authHeader = request.headers.authorization;
 
+    // Check if Authorization header exists and is properly formatted
     if (!authHeader) {
       throw new UnauthorizedException(
         'Access token is required. Please log in to access this resource.',
@@ -28,7 +29,7 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
       );
     }
 
-    const token = authHeader.substring(7);
+    const token = authHeader.substring(7); // Remove "Bearer " prefix
     if (!token || token.trim() === '') {
       throw new UnauthorizedException(
         'Access token is required. Please log in to access this resource.',
@@ -39,49 +40,49 @@ export class JwtAuthGuard extends AuthGuard('jwt') {
   }
 
   handleRequest(err: any, user: any, info: any) {
-    if (user && !err) {
-      return user;
-    }
-
-    switch (info?.name) {
-      case 'TokenExpiredError':
+    if (err || !user) {
+      if (info instanceof TokenExpiredError) {
         throw new UnauthorizedException(
           'Access token has expired. Please log in again.',
         );
-      case 'NotBeforeError':
+      } else if (info instanceof NotBeforeError) {
         throw new UnauthorizedException(
           'Access token is not yet valid. Please wait and try again.',
         );
-      case 'JsonWebTokenError':
-        const msg = info.message.toLowerCase();
-        if (msg.includes('invalid signature')) {
+      } else if (info instanceof JsonWebTokenError) {
+        // Handle specific JWT errors
+        if (info.message.includes('invalid signature')) {
           throw new UnauthorizedException(
             'Access token has an invalid signature. Please log in again.',
           );
-        }
-        if (msg.includes('malformed') || msg.includes('invalid token')) {
+        } else if (
+          info.message.includes('malformed') ||
+          info.message.includes('invalid token')
+        ) {
           throw new UnauthorizedException(
             'Access token is malformed. Please provide a valid token.',
           );
-        }
-        if (msg.includes('audience')) {
+        } else if (info.message.includes('jwt audience invalid')) {
           throw new UnauthorizedException(
             'Access token has invalid audience. Please log in again.',
           );
-        }
-        if (msg.includes('issuer')) {
+        } else if (info.message.includes('jwt issuer invalid')) {
           throw new UnauthorizedException(
             'Access token has invalid issuer. Please log in again.',
           );
+        } else {
+          throw new UnauthorizedException(
+            'Invalid access token. Please provide a valid token.',
+          );
         }
-        throw new UnauthorizedException(
-          'Invalid access token. Please provide a valid token.',
-        );
-      default:
-        if (err) throw err;
+      } else if (err) {
+        throw err;
+      } else {
         throw new UnauthorizedException(
           'Access token is required. Please log in to access this resource.',
         );
+      }
     }
+    return user;
   }
 }

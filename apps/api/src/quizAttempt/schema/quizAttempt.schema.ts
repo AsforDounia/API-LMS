@@ -7,13 +7,13 @@ export class QuizAttempt extends Document {
   startedAt: Date;
 
   @Prop()
-  completedAt: Date;
+  completedAt: Date; //null tant que quiz n'est pas soumis
 
   @Prop({ required: true })
   score: number;
 
   @Prop({ required: true })
-  passed: boolean;
+  passed: boolean; //true si score >= passingScore
 
   @Prop({ required: true })
   attemptNumber: number;
