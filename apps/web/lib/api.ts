@@ -23,4 +23,21 @@ api.interceptors.request.use(
     }
 )
 
+// Add a response interceptor for 401 handling
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        if (typeof window !== "undefined" && error.response?.status === 401) {
+            // Don't redirect if already on auth pages
+            const isAuthPage = window.location.pathname.startsWith("/auth")
+            if (!isAuthPage) {
+                localStorage.removeItem("token")
+                window.location.href = "/auth/login"
+            }
+        }
+        return Promise.reject(error)
+    }
+)
+
 export default api
+
