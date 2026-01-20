@@ -2,6 +2,8 @@
 import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
+import api from "@/lib/api"
+import { DashboardNav } from "@/components/layout/dashboard-nav"
 
 export default function DashboardLayout({
     children,
@@ -12,12 +14,25 @@ export default function DashboardLayout({
     const [isLoading, setIsLoading] = useState(true)
 
     useEffect(() => {
-        const token = localStorage.getItem("token")
-        if (!token) {
-            router.push("/auth/login")
-        } else {
-            setIsLoading(false)
+        const validateSession = async () => {
+            const token = localStorage.getItem("token")
+            if (!token) {
+                router.push("/auth/login")
+                return
+            }
+
+            try {
+                // Validate token by hitting the profile endpoint
+                await api.get("/auth/profile")
+                setIsLoading(false)
+            } catch (error) {
+                // Token invalid or expired
+                localStorage.removeItem("token")
+                router.push("/auth/login")
+            }
         }
+
+        validateSession()
     }, [router])
 
     if (isLoading) {
@@ -30,7 +45,11 @@ export default function DashboardLayout({
 
     return (
         <div className="min-h-screen bg-muted/40">
-            {children}
+            <DashboardNav />
+            <main className="container mx-auto max-w-6xl px-4 py-6">
+                {children}
+            </main>
         </div>
     )
 }
+
