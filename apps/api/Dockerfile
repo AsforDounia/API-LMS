@@ -1,13 +1,15 @@
-FROM node:22-alpine AS base
+FROM node:18-alpine
 
 WORKDIR /app
 
-COPY package*.json .
-
-RUN npm install
-
+# Copy the entire monorepo
 COPY . .
 
-EXPOSE 3000
+# Install dependencies
+RUN npm install
 
-CMD ["npm", "run", "start:dev"]
+# Build the API
+RUN npx turbo run build --filter=api
+
+# Run the API
+CMD ["node", "apps/api/dist/main"]
