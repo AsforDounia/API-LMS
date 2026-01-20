@@ -7,7 +7,6 @@ import {
   Param,
   Delete,
   UseGuards,
-  ForbiddenException,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
@@ -42,7 +41,6 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(Role.ADMIN, Role.TEACHER)
   update(
     @Param('id', ParseObjectIdPipe) id: ObjectId,
     @Body() updateUserDto: UpdateUserDto,

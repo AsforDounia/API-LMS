@@ -1,4 +1,4 @@
-import { Controller, Post, Body, Get, Param, UseGuards } from '@nestjs/common';
+import { Controller, Post, Body, Get, Param } from '@nestjs/common';
 import { QuizService } from './quiz.service';
 import { CreateQuizDto } from './dto/create-quiz.dto';
 import { CreateQuestionDto } from '../question/dto/create-question.dto';
@@ -23,13 +23,18 @@ export class QuizController {
     return this.quizService.addQuestion({ ...createQuestionDto, quizId });
   }
 
-  //   @Get(':id')
-  //   async getQuizById(@Param('id') id: string) {
-  //     return this.quizService.getQuizById(id);
-  //   }
+    // @Get(':id')
+    // async getQuizById(@Param('id') id: string) {
+    //   return this.quizService.getQuizById(id);
+    // }
 
   @Get(':quizId/questions')
   async getQuestionsByQuiz(@Param('quizId') quizId: string) {
     return this.quizService.getQuestionsByQuiz(quizId);
+  }
+
+  @Get(':moduleId/quizzes')
+  async getQuizzesByModule(@Param('moduleId') moduleId: string) {
+    return this.quizService.getQuizzesByModule(moduleId);
   }
 }

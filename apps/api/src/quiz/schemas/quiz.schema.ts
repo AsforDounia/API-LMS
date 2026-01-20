@@ -10,10 +10,10 @@ export class Quiz extends Document {
   title: string;
 
   @Prop({ required: true })
-  passingScore: number;
+  passingScore: number; //score pour passer le quiz
 
   @Prop({ default: false })
-  isRequired: boolean;
+  isRequired: boolean; //si le quiz est obligatoire
 }
 
 export const QuizSchema = SchemaFactory.createForClass(Quiz);

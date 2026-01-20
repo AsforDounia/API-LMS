@@ -59,12 +59,14 @@ export class UsersService {
     return user.save();
   }
 
-  findAll() {
-    return `This action returns all users`;
+  async findAll(): Promise<User[]> {
+    // Exclude soft-deleted users
+    return this.userModel.find({ deletedAt: { $exists: false } }).exec();
   }
 
-  findOne(id: ObjectId) {
-    return `This action returns a #${id} user`;
+  async findOne(id: ObjectId): Promise<User | null> {
+    // Exclude soft-deleted users
+    return this.userModel.findOne({ _id: id, deletedAt: { $exists: false } }).exec();
   }
 
   async update(
@@ -85,13 +87,14 @@ export class UsersService {
     }
 
     if (isAdmin && !isOwner) {
-      const allowedAdminFields = ['role', 'deletedAt', 'isActive'];
-      const invalidFields = Object.keys(updateUserDto).filter(
-        (key) => !allowedAdminFields.includes(key),
-      );
-      if (invalidFields.length > 0) {
+      if (
+        updateUserDto.password !== undefined ||
+        updateUserDto.email !== undefined ||
+        updateUserDto.firstName !== undefined ||
+        updateUserDto.lastName !== undefined
+      ) {
         throw new ForbiddenException(
-          `Admins cannot update fields: ${invalidFields.join(', ')}`,
+          'Admins cannot update personal user fields (password, email, firstName, lastName)',
         );
       }
     }
@@ -125,6 +128,15 @@ export class UsersService {
   }
 
   async remove(id: ObjectId, currentUser: User): Promise<User> {
-    return this.update(id, { deletedAt: new Date() } as any, currentUser);
+    const isOwner = currentUser._id.equals(id);
+    const isAdmin = currentUser.role === Role.ADMIN;
+    if (!isOwner && !isAdmin) {
+      throw new ForbiddenException('You cannot delete this user');
+    }
+    return this.update(
+      id,
+      { deletedAt: new Date() } as UpdateUserDto,
+      currentUser,
+    );
   }
 }

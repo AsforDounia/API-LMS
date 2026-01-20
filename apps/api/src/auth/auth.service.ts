@@ -44,6 +44,25 @@ export class AuthService {
       );
     }
 
+    const userCount = await this.userModel.countDocuments();
+    let role: Role;
+    if (userCount === 0) {
+      // First user: must not send role
+      if (registerDto.role) {
+        throw new ConflictException('Do not send a role for the first user. The first user will automatically be an admin.');
+      }
+      role = Role.ADMIN;
+    } else {
+      // Other users: must provide role, cannot be admin
+      if (!registerDto.role) {
+        throw new ConflictException('Role is required for registration');
+      }
+      if (registerDto.role === Role.ADMIN) {
+        throw new ConflictException('Cannot register as admin');
+      }
+      role = registerDto.role;
+    }
+
     const hashedPassword = await bcrypt.hash(
       registerDto.password,
       BCRYPT_ROUNDS,
@@ -52,7 +71,7 @@ export class AuthService {
     const user = new this.userModel({
       ...registerDto,
       password: hashedPassword,
-      role: Role.STUDENT,
+      role,
     });
 
     await user.save();
@@ -117,14 +136,14 @@ export class AuthService {
     };
   }
 
-  async logout(token: string, user: User): Promise<{ message: string }> {
+  async logout(token: string): Promise<{ message: string }> {
     if (!token) {
       throw new UnauthorizedException('No token provided for logout.');
     }
 
     try {
       // Decode token to get expiration time
-      const decoded = this.jwtService.decode(token) as any;
+      const decoded = this.jwtService.decode(token);
       const expiresAt = new Date(decoded.exp * 1000);
 
       // Blacklist the token
@@ -133,7 +152,7 @@ export class AuthService {
       return {
         message: 'Logout successful. Your session has been terminated.',
       };
-    } catch (error) {
+    } catch {
       throw new UnauthorizedException('Invalid token provided for logout.');
     }
   }

@@ -29,12 +29,9 @@ export class AuthController {
 
   @Post('logout')
   @UseGuards(JwtAuthGuard)
-  logout(
-    @Headers('authorization') authHeader: string,
-    @CurrentUser() user: User,
-  ) {
+  logout(@Headers('authorization') authHeader: string) {
     const token = authHeader?.replace('Bearer ', '');
-    return this.authService.logout(token, user);
+    return this.authService.logout(token);
   }
 
   @Get('profile')
