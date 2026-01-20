@@ -11,6 +11,7 @@ import * as bcrypt from 'bcryptjs';
 import { User } from '@users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
+import { UpdateProfileDto } from './dto/update-profile.dto';
 import { Role } from '@common/enums/role.enum';
 import { BCRYPT_ROUNDS } from '@common/constants';
 import { TokenBlacklistService } from './token-blacklist.service';
@@ -21,7 +22,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     private tokenBlacklistService: TokenBlacklistService,
-  ) {}
+  ) { }
 
   private generateToken(user: User): string {
     const payload = {
@@ -155,5 +156,30 @@ export class AuthService {
     } catch {
       throw new UnauthorizedException('Invalid token provided for logout.');
     }
+  }
+
+  async updateProfile(
+    user: User,
+    updateProfileDto: UpdateProfileDto,
+  ): Promise<{ message: string; user: Partial<User> }> {
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      user._id,
+      { $set: updateProfileDto },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    return {
+      message: 'Profile updated successfully.',
+      user: {
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        role: updatedUser.role,
+      },
+    };
   }
 }
