@@ -8,11 +8,12 @@ import { Model, Types } from 'mongoose';
 @Injectable()
 export class EnrollmentsService {
   constructor(
-    @InjectModel(Enrollment.name) private readonly enrollmentModel: Model<Enrollment>,
+    @InjectModel(Enrollment.name)
+    private readonly enrollmentModel: Model<Enrollment>,
     @InjectModel('User') private readonly userModel: Model<any>,
     @InjectModel('Course') private readonly courseModel: Model<any>,
     @InjectModel('Module') private readonly moduleModel: Model<any>,
-  ) { }
+  ) {}
 
   async create(createEnrollmentDto: CreateEnrollmentDto) {
     const { student, course } = createEnrollmentDto;
@@ -26,7 +27,6 @@ export class EnrollmentsService {
     if (!foundCourse) {
       throw new BadRequestException('Course ID does not exist');
     }
-
 
     const createdEnrollment = new this.enrollmentModel(createEnrollmentDto);
     return createdEnrollment.save();
@@ -51,18 +51,19 @@ export class EnrollmentsService {
   async getModulesByCourseIdAndStudentId(courseId: string, studentId: string) {
     const enrollment = await this.enrollmentModel.findOne({
       course: new Types.ObjectId(courseId),
-      student: new Types.ObjectId(studentId)
+      student: new Types.ObjectId(studentId),
     });
 
     if (!enrollment) {
       return { success: false, message: 'Enrollment not found', data: [] };
     }
 
-    const modules = await this.moduleModel.find({
-      course: new Types.ObjectId(courseId),
-      deletedAt: null,
-      isPublished: true
-    })
+    const modules = await this.moduleModel
+      .find({
+        course: new Types.ObjectId(courseId),
+        deletedAt: null,
+        isPublished: true,
+      })
       .select('title description order isPublished moduleType')
       .sort({ order: 1 })
       .lean();

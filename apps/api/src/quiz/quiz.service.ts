@@ -25,9 +25,9 @@ export class QuizService {
     return question.save();
   }
 
-    // async getQuizById(id: string): Promise<Quiz> {
-    //   return this.quizModel.findById(id).populate('moduleId').exec();
-    // }
+  // async getQuizById(id: string): Promise<Quiz> {
+  //   return this.quizModel.findById(id).populate('moduleId').exec();
+  // }
 
   async getQuestionsByQuiz(quizId: string): Promise<Question[]> {
     return this.questionModel.find({ quizId }).exec();

@@ -66,7 +66,9 @@ export class UsersService {
 
   async findOne(id: ObjectId): Promise<User | null> {
     // Exclude soft-deleted users
-    return this.userModel.findOne({ _id: id, deletedAt: { $exists: false } }).exec();
+    return this.userModel
+      .findOne({ _id: id, deletedAt: { $exists: false } })
+      .exec();
   }
 
   async update(

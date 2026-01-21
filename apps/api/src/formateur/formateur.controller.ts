@@ -1,5 +1,14 @@
 // filepath: src/formateur/formateur.controller.ts
-import { Controller, Get, Post, Body, Patch, Param, Delete, UseGuards } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Patch,
+  Param,
+  Delete,
+  UseGuards,
+} from '@nestjs/common';
 import { FormateurService } from './formateur.service';
 import { CreateFormateurDto } from './dto/create-formateur.dto';
 import { UpdateFormateurDto } from './dto/update-formateur.dto';
@@ -14,12 +23,11 @@ import { StudentProgressReportDto } from './dto/student-progress-report.dto';
 @Roles(Role.TEACHER)
 export class FormateurController {
   constructor(private readonly formateurService: FormateurService) {}
-@Get('my-courses')
+  @Get('my-courses')
   async getMyCourses(@CurrentUser() user: User) {
-    const courses =
-      await this.formateurService.getMyCourses(
-        user._id.toString(),
-      );
+    const courses = await this.formateurService.getMyCourses(
+      user._id.toString(),
+    );
 
     return {
       message: 'Courses retrieved successfully',
@@ -27,20 +35,23 @@ export class FormateurController {
     };
   }
   @Get('enrolled-learners')
-  async getEnrolledLearners(@CurrentUser() user: User): Promise<{ message: string; data: EnrolledLearnerDto[] }> {
-    const learners = await this.formateurService.getEnrolledLearners(user._id.toString());
+  async getEnrolledLearners(
+    @CurrentUser() user: User,
+  ): Promise<{ message: string; data: EnrolledLearnerDto[] }> {
+    const learners = await this.formateurService.getEnrolledLearners(
+      user._id.toString(),
+    );
     return { message: 'Enrolled learners retrieved', data: learners };
   }
-   @Get('courses/:courseId/students')
+  @Get('courses/:courseId/students')
   async getStudentsByCourse(
     @Param('courseId') courseId: string,
     @CurrentUser() user: User,
   ) {
-    const students =
-      await this.formateurService.getStudentsByCourse(
-        courseId,
-        user._id.toString(),
-      );
+    const students = await this.formateurService.getStudentsByCourse(
+      courseId,
+      user._id.toString(),
+    );
 
     return {
       message: 'Students retrieved successfully',
@@ -94,6 +105,4 @@ export class FormateurController {
       data: reports,
     };
   }
-  
-  
 }

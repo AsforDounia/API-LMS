@@ -1,7 +1,12 @@
-import { IsMongoId, IsDateString, IsInt, IsBoolean, IsOptional } from 'class-validator';
+import {
+  IsMongoId,
+  IsDateString,
+  IsInt,
+  IsBoolean,
+  IsOptional,
+} from 'class-validator';
 
 export class CreateQuizAttemptDto {
-
   @IsMongoId()
   apprenantId: string;
 

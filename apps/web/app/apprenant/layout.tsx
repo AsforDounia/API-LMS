@@ -1,17 +1,15 @@
-'use client';
+"use client";
 
 export default function TrainerLayout({
-    children,
+  children,
 }: {
-    children: React.ReactNode;
+  children: React.ReactNode;
 }) {
-    return (
-            <div className="min-h-screen bg-background flex">
-                <main className="flex-1 overflow-auto">
-                    <div className=" w-full">
-                        {children}
-                    </div>
-                </main>
-            </div>
-    );
+  return (
+    <div className="min-h-screen bg-background flex">
+      <main className="flex-1 overflow-auto">
+        <div className=" w-full">{children}</div>
+      </main>
+    </div>
+  );
 }

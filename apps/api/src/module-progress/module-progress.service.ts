@@ -4,7 +4,7 @@ import { Model, Types } from 'mongoose';
 import { CreateModuleProgressDto } from './dto/create-module-progress.dto';
 import { UpdateModuleProgressDto } from './dto/update-module-progress.dto';
 import { ModuleProgress } from './entities/module-progress.entity';
-import {ProgressStatus} from './entities/module-progress.entity'
+import { ProgressStatus } from './entities/module-progress.entity';
 
 @Injectable()
 export class ModuleProgressService {
@@ -47,7 +47,10 @@ export class ModuleProgressService {
     );
   }
 
-  async getByModuleAndUser(moduleId: Types.ObjectId, apprenantId: Types.ObjectId) {
+  async getByModuleAndUser(
+    moduleId: Types.ObjectId,
+    apprenantId: Types.ObjectId,
+  ) {
     return this.moduleProgressModel.findOne({ moduleId, apprenantId });
   }
 

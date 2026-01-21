@@ -3,9 +3,18 @@ import { MongooseModule } from '@nestjs/mongoose';
 import { CoursesService } from './courses.service';
 import { CoursesController } from './courses.controller';
 import { Course, CourseSchema } from './entities/course.entity';
-import { Module as ModuleEntity, ModuleSchema } from '@src/modules/entities/module.entity';
-import { ModuleProgress, ModuleProgressSchema } from '@src/module-progress/entities/module-progress.entity';
-import { Enrollment, EnrollmentSchema } from '@src/enrollments/entities/enrollment.entity';
+import {
+  Module as ModuleEntity,
+  ModuleSchema,
+} from '@src/modules/entities/module.entity';
+import {
+  ModuleProgress,
+  ModuleProgressSchema,
+} from '@src/module-progress/entities/module-progress.entity';
+import {
+  Enrollment,
+  EnrollmentSchema,
+} from '@src/enrollments/entities/enrollment.entity';
 
 @Module({
   imports: [

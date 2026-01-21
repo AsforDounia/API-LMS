@@ -7,15 +7,14 @@ import { UserSchema } from '@src/users/entities/user.entity';
 import { Enrollment, EnrollmentSchema } from './entities/enrollment.entity';
 import { ModuleSchema } from '@src/modules/entities/module.entity';
 
-
 @Module({
   imports: [
     MongooseModule.forFeature([
-      {name: Enrollment.name, schema: EnrollmentSchema },
+      { name: Enrollment.name, schema: EnrollmentSchema },
       { name: 'Course', schema: CourseSchema },
       { name: 'User', schema: UserSchema },
       { name: 'Module', schema: ModuleSchema },
-    ])
+    ]),
   ],
   controllers: [EnrollmentsController],
   providers: [EnrollmentsService],

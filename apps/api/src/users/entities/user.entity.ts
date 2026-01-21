@@ -22,6 +22,9 @@ export class User extends Document {
   @Prop({ enum: Role, default: Role.STUDENT })
   role: Role;
 
+  @Prop({ select: false })
+  currentHashedRefreshToken?: string;
+
   @Prop({ default: true })
   isActive: boolean;
 

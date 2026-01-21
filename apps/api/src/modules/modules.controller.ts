@@ -61,7 +61,10 @@ export class ModulesController {
     @Param('id', ParseObjectIdPipe) moduleId: ObjectId,
     @Param('apprenantId', ParseObjectIdPipe) apprenantId: ObjectId,
   ) {
-    const canAccess = await this.modulesService.canAccessModule(apprenantId, moduleId);
+    const canAccess = await this.modulesService.canAccessModule(
+      apprenantId,
+      moduleId,
+    );
     return { moduleId, apprenantId, canAccess };
   }
 

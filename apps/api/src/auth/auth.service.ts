@@ -1,5 +1,6 @@
 import {
   ConflictException,
+  ForbiddenException,
   Injectable,
   UnauthorizedException,
 } from '@nestjs/common';
@@ -8,12 +9,12 @@ import { JwtService } from '@nestjs/jwt';
 import { Model } from 'mongoose';
 import * as bcrypt from 'bcryptjs';
 
-import { User } from '@users/entities/user.entity';
+import { User } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
-import { Role } from '@common/enums/role.enum';
-import { BCRYPT_ROUNDS } from '@common/constants';
+import { Role } from '../common/enums/role.enum';
+import { BCRYPT_ROUNDS } from '../common/constants';
 import { TokenBlacklistService } from './token-blacklist.service';
 
 @Injectable()
@@ -22,20 +23,85 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     private tokenBlacklistService: TokenBlacklistService,
-  ) { }
+  ) {}
 
-  private generateToken(user: User): string {
-    const payload = {
-      sub: user._id,
-      email: user.email,
-      role: user.role,
+  async getTokens(userId: string, email: string, role: Role) {
+    const [accessToken, refreshToken] = await Promise.all([
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+          role,
+        },
+        {
+          expiresIn: '15m',
+        },
+      ),
+      this.jwtService.signAsync(
+        {
+          sub: userId,
+          email,
+          role,
+        },
+        {
+          expiresIn: '7d',
+        },
+      ),
+    ]);
+
+    return {
+      accessToken,
+      refreshToken,
     };
-    return this.jwtService.sign(payload);
+  }
+
+  async updateRefreshToken(userId: string, refreshToken: string) {
+    const hash = await bcrypt.hash(refreshToken, BCRYPT_ROUNDS);
+    await this.userModel.findByIdAndUpdate(userId, {
+      currentHashedRefreshToken: hash,
+    });
+  }
+
+  async refreshTokens(userId: string, refreshToken: string) {
+    const user = await this.userModel
+      .findById(userId)
+      .select('+currentHashedRefreshToken');
+    if (!user || !user.currentHashedRefreshToken)
+      throw new ForbiddenException('Access Denied');
+
+    const refreshTokenMatches = await bcrypt.compare(
+      refreshToken,
+      user.currentHashedRefreshToken,
+    );
+    if (!refreshTokenMatches) throw new ForbiddenException('Access Denied');
+
+    const tokens = await this.getTokens(
+      user._id.toString(),
+      user.email,
+      user.role,
+    );
+    await this.updateRefreshToken(user._id.toString(), tokens.refreshToken);
+    return tokens;
+  }
+
+  async refreshTokensFromDto(refreshToken: string) {
+    try {
+      const payload = await this.jwtService.verifyAsync(refreshToken);
+      const userId = payload.sub;
+      return this.refreshTokens(userId, refreshToken);
+    } catch (e) {
+      throw new ForbiddenException('Invalid Refresh Token');
+    }
   }
 
   async register(
     registerDto: RegisterDto,
-  ): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
+  ): Promise<{
+    message: string;
+    accessToken: string;
+    refreshToken: string;
+    user: Partial<User>;
+  }> {
     const existingUser = await this.userModel.findOne({
       email: registerDto.email,
     });
@@ -50,7 +116,9 @@ export class AuthService {
     if (userCount === 0) {
       // First user: must not send role
       if (registerDto.role) {
-        throw new ConflictException('Do not send a role for the first user. The first user will automatically be an admin.');
+        throw new ConflictException(
+          'Do not send a role for the first user. The first user will automatically be an admin.',
+        );
       }
       role = Role.ADMIN;
     } else {
@@ -77,11 +145,17 @@ export class AuthService {
 
     await user.save();
 
-    const accessToken = this.generateToken(user);
+    const tokens = await this.getTokens(
+      user._id.toString(),
+      user.email,
+      user.role,
+    );
+    await this.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
     return {
       message: 'Registration successful',
-      accessToken,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: {
         email: user.email,
         firstName: user.firstName,
@@ -93,7 +167,12 @@ export class AuthService {
 
   async login(
     loginDto: LoginDto,
-  ): Promise<{ message: string; accessToken: string; user: Partial<User> }> {
+  ): Promise<{
+    message: string;
+    accessToken: string;
+    refreshToken: string;
+    user: Partial<User>;
+  }> {
     const user = await this.userModel.findOne({ email: loginDto.email });
     if (!user) {
       throw new UnauthorizedException(
@@ -123,11 +202,17 @@ export class AuthService {
       );
     }
 
-    const accessToken = this.generateToken(user);
+    const tokens = await this.getTokens(
+      user._id.toString(),
+      user.email,
+      user.role,
+    );
+    await this.updateRefreshToken(user._id.toString(), tokens.refreshToken);
 
     return {
       message: 'Login successful',
-      accessToken,
+      accessToken: tokens.accessToken,
+      refreshToken: tokens.refreshToken,
       user: {
         email: user.email,
         firstName: user.firstName,
@@ -137,24 +222,35 @@ export class AuthService {
     };
   }
 
-  async logout(token: string): Promise<{ message: string }> {
+  async logout(token: string, userId?: string): Promise<{ message: string }> {
+    // If we have userId (from verified token), clear refresh token
+    if (userId) {
+      await this.userModel.findByIdAndUpdate(userId, {
+        currentHashedRefreshToken: null,
+      });
+    }
+
     if (!token) {
+      // If no access token, just return success if we cleared refresh token
+      if (userId) return { message: 'Logout successful.' };
       throw new UnauthorizedException('No token provided for logout.');
     }
 
     try {
       // Decode token to get expiration time
       const decoded = this.jwtService.decode(token);
-      const expiresAt = new Date(decoded.exp * 1000);
-
-      // Blacklist the token
-      await this.tokenBlacklistService.blacklistToken(token, expiresAt);
+      if (decoded && decoded.exp) {
+        const expiresAt = new Date(decoded.exp * 1000);
+        // Blacklist the token
+        await this.tokenBlacklistService.blacklistToken(token, expiresAt);
+      }
 
       return {
         message: 'Logout successful. Your session has been terminated.',
       };
     } catch {
-      throw new UnauthorizedException('Invalid token provided for logout.');
+      // Even if token invalid, we want to allow logout to proceed on client usually
+      return { message: 'Logout successful.' };
     }
   }
 

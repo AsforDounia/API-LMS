@@ -16,7 +16,11 @@ export class ModuleProgress extends Document {
   @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Module', required: true })
   moduleId!: Types.ObjectId;
 
-  @Prop({ type: MongooseSchema.Types.ObjectId, ref: 'Enrollment', required: true })
+  @Prop({
+    type: MongooseSchema.Types.ObjectId,
+    ref: 'Enrollment',
+    required: true,
+  })
   enrollmentId!: Types.ObjectId;
 
   @Prop({ enum: ProgressStatus, default: ProgressStatus.NOT_STARTED })
@@ -35,4 +39,5 @@ export class ModuleProgress extends Document {
   completedAt?: Date;
 }
 
-export const ModuleProgressSchema = SchemaFactory.createForClass(ModuleProgress);
+export const ModuleProgressSchema =
+  SchemaFactory.createForClass(ModuleProgress);

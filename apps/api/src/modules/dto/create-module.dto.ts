@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import {
-    ArrayNotEmpty,
+  ArrayNotEmpty,
   IsArray,
   IsBoolean,
   IsMongoId,

@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+  NotFoundException,
+} from '@nestjs/common';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -15,13 +20,16 @@ export class ModulesService {
   constructor(
     @InjectModel(Module.name) private readonly moduleModel: Model<Module>,
     @InjectCourseModel('Course') private readonly courseModel: Model<any>,
-    @InjectModel(ModuleProgress.name) private readonly moduleProgressModel: Model<ModuleProgress>, // AJOUTE ICI
+    @InjectModel(ModuleProgress.name)
+    private readonly moduleProgressModel: Model<ModuleProgress>, // AJOUTE ICI
   ) {}
 
   async create(createModuleDto: CreateModuleDto) {
     // Validate all course IDs exist
     const courseId = createModuleDto.course;
-    const foundCourse = await this.courseModel.findOne({ _id: courseId, deletedAt: { $exists: false } }).exec();
+    const foundCourse = await this.courseModel
+      .findOne({ _id: courseId, deletedAt: { $exists: false } })
+      .exec();
     if (foundCourse) {
       throw new BadRequestException('The course ID do not exist');
     }
@@ -37,7 +45,11 @@ export class ModulesService {
     return this.moduleModel.findById(id).exec();
   }
 
-  async update(id: ObjectId, updateModuleDto: UpdateModuleDto, user: User): Promise<Module | null> {
+  async update(
+    id: ObjectId,
+    updateModuleDto: UpdateModuleDto,
+    user: User,
+  ): Promise<Module | null> {
     const module = await this.moduleModel.findById(id);
     if (!module) {
       throw new Error('Module not found');
@@ -50,9 +62,11 @@ export class ModulesService {
     const isTeacher = course.teacher?.toString() === user._id.toString();
     const isAdmin = user.role === Role.ADMIN;
     if (!isTeacher && !isAdmin) {
-      throw new ForbiddenException('You are not authorized to update this module');
+      throw new ForbiddenException(
+        'You are not authorized to update this module',
+      );
     }
-    if(isAdmin && !isTeacher){
+    if (isAdmin && !isTeacher) {
       if (
         updateModuleDto.title !== undefined ||
         updateModuleDto.description !== undefined ||
@@ -65,10 +79,15 @@ export class ModulesService {
         );
       }
     }
-    return this.moduleModel.findByIdAndUpdate(id, { $set: updateModuleDto }, { new: true }).exec();
+    return this.moduleModel
+      .findByIdAndUpdate(id, { $set: updateModuleDto }, { new: true })
+      .exec();
   }
 
-  async remove(id: ObjectId, user: User): Promise<{ deleted: boolean; module: Module | null }> {
+  async remove(
+    id: ObjectId,
+    user: User,
+  ): Promise<{ deleted: boolean; module: Module | null }> {
     const module = await this.moduleModel.findById(id);
     if (!module) {
       throw new Error('Module not found');
@@ -81,25 +100,34 @@ export class ModulesService {
     const isTeacher = course.teacher?.toString() === user._id.toString();
     const isAdmin = user.role === Role.ADMIN;
     if (!isTeacher && !isAdmin) {
-      throw new ForbiddenException('You are not authorized to delete this module');
+      throw new ForbiddenException(
+        'You are not authorized to delete this module',
+      );
     }
     await this.moduleModel.updateOne({ _id: id }, { deletedAt: new Date() });
     const deletedModule = await this.moduleModel.findById(id);
     return { deleted: true, module: deletedModule };
   }
 
-  async canAccessModule(apprenantId: Types.ObjectId, moduleId: Types.ObjectId): Promise<boolean> {
+  async canAccessModule(
+    apprenantId: Types.ObjectId,
+    moduleId: Types.ObjectId,
+  ): Promise<boolean> {
     const module = await this.moduleModel.findById(moduleId);
     if (!module) throw new NotFoundException('Module not found');
 
-    const modules = await this.moduleModel.find({
-      course: module.course,
-      isPublished: true,
-      deletedAt: null,
-    }).sort({ order: 1 }).exec();
+    const modules = await this.moduleModel
+      .find({
+        course: module.course,
+        isPublished: true,
+        deletedAt: null,
+      })
+      .sort({ order: 1 })
+      .exec();
 
-    const currentIndex = modules.findIndex(m => m._id.equals(moduleId));
-    if (currentIndex === -1) throw new NotFoundException('Module not found in course');
+    const currentIndex = modules.findIndex((m) => m._id.equals(moduleId));
+    if (currentIndex === -1)
+      throw new NotFoundException('Module not found in course');
 
     for (let i = 0; i < currentIndex; i++) {
       const progress = await this.moduleProgressModel.findOne({
@@ -116,14 +144,22 @@ export class ModulesService {
   async accessModule(apprenantId: Types.ObjectId, moduleId: Types.ObjectId) {
     const canAccess = await this.canAccessModule(apprenantId, moduleId);
     if (!canAccess) {
-      throw new ForbiddenException('Module locked: prerequisites not completed');
+      throw new ForbiddenException(
+        'Module locked: prerequisites not completed',
+      );
     }
-    
-    return { success: true, message: 'Module accessible', module: await this.findOne(moduleId) };
+
+    return {
+      success: true,
+      message: 'Module accessible',
+      module: await this.findOne(moduleId),
+    };
   }
 
- 
-  async unlockNextModule(apprenantId: Types.ObjectId, moduleId: Types.ObjectId) {
+  async unlockNextModule(
+    apprenantId: Types.ObjectId,
+    moduleId: Types.ObjectId,
+  ) {
     const module = await this.moduleModel.findById(moduleId);
     if (!module) return;
 
@@ -138,7 +174,7 @@ export class ModulesService {
       await this.moduleProgressModel.updateOne(
         { apprenantId, moduleId: nextModule._id },
         { $set: { isLocked: false } },
-        { upsert: true }
+        { upsert: true },
       );
     }
   }

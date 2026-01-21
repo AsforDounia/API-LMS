@@ -13,7 +13,7 @@ import { UpdateEnrollmentDto } from './dto/update-enrollment.dto';
 
 @Controller('enrollments')
 export class EnrollmentsController {
-  constructor(private readonly enrollmentsService: EnrollmentsService) { }
+  constructor(private readonly enrollmentsService: EnrollmentsService) {}
 
   @Post()
   create(@Body() createEnrollmentDto: CreateEnrollmentDto) {
@@ -26,8 +26,14 @@ export class EnrollmentsController {
   }
 
   @Get('modules/:courseId/:studentId')
-  async getModulesByCourseIdAndStudentId(@Param('courseId') courseId: string, @Param('studentId') studentId: string) {
-    return this.enrollmentsService.getModulesByCourseIdAndStudentId(courseId, studentId);
+  async getModulesByCourseIdAndStudentId(
+    @Param('courseId') courseId: string,
+    @Param('studentId') studentId: string,
+  ) {
+    return this.enrollmentsService.getModulesByCourseIdAndStudentId(
+      courseId,
+      studentId,
+    );
   }
 
   @Get(':id')
@@ -47,5 +53,4 @@ export class EnrollmentsController {
   remove(@Param('id') id: string) {
     return this.enrollmentsService.remove(+id);
   }
-
 }
