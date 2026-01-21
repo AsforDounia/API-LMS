@@ -113,8 +113,10 @@ export default function CourseDetailPage() {
                     </div>
 
                     <div className="pt-4 border-t">
-                        <Button size="lg">
-                            Start Learning
+                      <Button size="lg" asChild>
+                            <Link href={`/dashboard/apprenant/courses/${params.id}/modules`}>
+                                Start Learning
+                            </Link>
                         </Button>
                     </div>
                 </CardContent>
