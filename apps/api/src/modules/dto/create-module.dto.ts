@@ -1,17 +1,19 @@
 import { Types } from 'mongoose';
 import {
-    ArrayNotEmpty,
-  IsArray,
   IsBoolean,
+  IsEnum,
   IsMongoId,
   IsNotEmpty,
   IsNumber,
   IsString,
+  IsOptional,
 } from 'class-validator';
+import { Transform, Type } from 'class-transformer'; // 👈 You must import this
+import { ModuleType } from '@src/common/enums/module-type.enum';
 
 export class CreateModuleDto {
-  @IsMongoId({ each: true })
-  course!: Types.ObjectId;
+  @IsMongoId()
+  course!: string; 
 
   @IsString()
   @IsNotEmpty()
@@ -21,14 +23,20 @@ export class CreateModuleDto {
   @IsNotEmpty()
   description!: string;
 
+  @Type(() => Number)
   @IsNumber()
   @IsNotEmpty()
   order!: number;
 
-  @IsString()
+  @IsEnum(ModuleType)
   @IsNotEmpty()
-  moduleType!: string;
+  moduleType!: ModuleType;
 
+  @IsString()
+  @IsOptional()
+  content?: string;
+
+  @Transform(({ value }) => value === 'true' || value === true)
   @IsBoolean()
   isPublished?: boolean;
 }

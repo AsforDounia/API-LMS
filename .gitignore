@@ -64,3 +64,4 @@ report.[0-9]*.[0-9]*.[0-9]*.[0-9]*.json
 PROJECT_PLAN.md
 /node_modules
 apps/api/node_modules
+apps/api/uploads

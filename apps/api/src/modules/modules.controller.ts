@@ -7,7 +7,11 @@ import {
   Param,
   Delete,
   UseGuards,
+  UseInterceptors,
+  UploadedFile,
+  BadRequestException,
 } from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import { ParseObjectIdPipe } from '@src/common/pipes';
 import { type ObjectId } from '@src/common/types/objectid.type';
 import { ModulesService } from './modules.service';
@@ -23,9 +27,10 @@ export class ModulesController {
   constructor(private readonly modulesService: ModulesService) {}
 
   @Post()
+  @UseInterceptors(FileInterceptor('content'))
   @Roles(Role.TEACHER)
-  create(@Body() createModuleDto: CreateModuleDto) {
-    return this.modulesService.create(createModuleDto);
+  create(@UploadedFile() file: Express.Multer.File, @Body() createModuleDto: CreateModuleDto) {
+    return this.modulesService.create(createModuleDto, file);
   }
 
   @Get()
@@ -45,12 +50,14 @@ export class ModulesController {
   }
 
   @Patch(':id')
+  @UseInterceptors(FileInterceptor('content'))
   update(
     @Param('id', ParseObjectIdPipe) id: ObjectId,
+    @UploadedFile() file: Express.Multer.File,
     @Body() updateModuleDto: UpdateModuleDto,
     @CurrentUser() user: User,
   ) {
-    return this.modulesService.update(id, updateModuleDto, user);
+    return this.modulesService.update(id, updateModuleDto, user, file);
   }
 
   @Delete(':id')
