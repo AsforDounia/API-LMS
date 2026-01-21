@@ -41,7 +41,12 @@ export class CoursesService {
 
   async findAll(): Promise<Course[]> {
     // Exclude soft-deleted courses
-    return this.courseModel.find({ deletedAt: { $exists: false } }).exec();
+    return this.courseModel.find({
+      $or: [
+        { deletedAt: { $exists: false } },
+        { deletedAt: null }
+      ]
+    }).exec();
   }
 
   async findOne(id: ObjectId): Promise<Course | null> {

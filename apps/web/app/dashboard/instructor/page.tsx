@@ -53,7 +53,7 @@ export default function InstructorDashboardPage() {
                 setUser(profileRes.data)
                 // Filter to show only this instructor's courses
                 const myCourses = coursesRes.filter(
-                    (course) => course.instructor._id === profileRes.data._id
+                    (course) => course.teacher._id === profileRes.data._id
                 )
                 setCourses(myCourses)
             } catch (err) {

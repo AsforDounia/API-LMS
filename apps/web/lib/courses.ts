@@ -4,7 +4,7 @@ export interface Course {
     _id: string
     title: string
     description: string
-    instructor: {
+    teacher: {
         _id: string
         firstName: string
         lastName: string
@@ -17,7 +17,7 @@ export interface Course {
 export interface CreateCourseData {
     title: string
     description?: string
-    instructor: string
+    teacher: string
 }
 
 export interface UpdateCourseData {
