@@ -96,4 +96,12 @@ export class CoursesController {
       apprenantId,
       progressPercentage: progress,
     };}
+
+  @Get(':courseId/modules')
+  @Roles(Role.TEACHER, Role.STUDENT)
+  async getModulesByCourse(
+    @Param('courseId', ParseObjectIdPipe) courseId: string,
+  ) {
+    return this.coursesService.getModulesByCourse(new Types.ObjectId(courseId));
+  }
 }
