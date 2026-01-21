@@ -9,6 +9,8 @@ import { quizApi, Quiz, CreateQuizData } from "@/lib/quizzes"
 import { QuizForm } from "@/components/quizzes/quiz-form"
 import { showSuccess, showError } from "@/components/ui/toast";
 import { QuizCard } from "@/components/quizzes/quiz-card"
+import { QuestionsManager } from "@/components/quizzes/questions-manager"
+import { ConfirmDialog } from "@/components/ui/confirm-dialog"
 
 export default function QuizzesPage() {
     const [quizzes, setQuizzes] = useState<Quiz[]>([])
@@ -16,6 +18,10 @@ export default function QuizzesPage() {
     const [isCreateOpen, setIsCreateOpen] = useState(false)
     const [isEditOpen, setIsEditOpen] = useState(false)
     const [editingQuiz, setEditingQuiz] = useState<Quiz | null>(null)
+    const [isQuestionsOpen, setIsQuestionsOpen] = useState(false)
+    const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
+    const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
+    const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null)
 
     useEffect(() => {
         loadQuizzes()
@@ -58,20 +64,32 @@ export default function QuizzesPage() {
     }
 
     const handleDelete = async (id: string) => {
-        if (!confirm("Are you sure you want to delete this quiz?")) return
-        
+        setDeletingQuizId(id)
+        setIsDeleteConfirmOpen(true)
+    }
+
+    const confirmDelete = async () => {
+        if (!deletingQuizId) return
+
         try {
-            await quizApi.delete(id)
+            await quizApi.delete(deletingQuizId)
             showSuccess("Quiz deleted successfully")
             loadQuizzes()
         } catch (error) {
             showError("Failed to delete quiz")
+        } finally {
+            setDeletingQuizId(null)
         }
     }
 
     const openEditDialog = (quiz: Quiz) => {
         setEditingQuiz(quiz)
         setIsEditOpen(true)
+    }
+
+    const openQuestionsDialog = (quiz: Quiz) => {
+        setSelectedQuiz(quiz)
+        setIsQuestionsOpen(true)
     }
 
     if (loading) {
@@ -125,6 +143,7 @@ export default function QuizzesPage() {
                             quiz={quiz}
                             onEdit={openEditDialog}
                             onDelete={handleDelete}
+                            onQuestions={openQuestionsDialog}
                         />
                     ))
                 )}
@@ -153,6 +172,24 @@ export default function QuizzesPage() {
                     />
                 </DialogContent>
             </Dialog>
+
+            <QuestionsManager
+                quizId={selectedQuiz?._id || ""}
+                quizTitle={selectedQuiz?.title || ""}
+                isOpen={isQuestionsOpen}
+                onOpenChange={setIsQuestionsOpen}
+            />
+
+            <ConfirmDialog
+                open={isDeleteConfirmOpen}
+                onOpenChange={setIsDeleteConfirmOpen}
+                title="Delete Quiz"
+                description="Are you sure you want to delete this quiz? This action cannot be undone and will also delete all associated questions."
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={confirmDelete}
+                variant="destructive"
+            />
         </div>
     )
 }
