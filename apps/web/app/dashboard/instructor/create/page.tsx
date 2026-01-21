@@ -137,7 +137,7 @@ export default function CreateCoursePage() {
                                         <FormLabel>Description</FormLabel>
                                         <FormControl>
                                             <Textarea
-                                                placeholder="Describe what students will learn..."
+                                                placeholder="Describe what apprenants will learn..."
                                                 className="min-h-32 resize-none"
                                                 {...field}
                                                 disabled={isSaving}
@@ -173,6 +173,6 @@ export default function CreateCoursePage() {
                     </Form>
                 </CardContent>
             </Card>
-        </div>
+        </div >
     )
 }

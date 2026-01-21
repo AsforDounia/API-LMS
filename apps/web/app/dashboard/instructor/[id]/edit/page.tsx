@@ -189,7 +189,7 @@ export default function EditCoursePage() {
                                         <div className="space-y-0.5">
                                             <FormLabel className="text-base">Published</FormLabel>
                                             <FormDescription>
-                                                Make this course visible to students
+                                                Make this course visible to apprenants
                                             </FormDescription>
                                         </div>
                                         <FormControl>
