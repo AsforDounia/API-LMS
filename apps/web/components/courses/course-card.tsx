@@ -39,7 +39,7 @@ export function CourseCard({ course }: CourseCardProps) {
                 </CardTitle>
                 <CardDescription className="flex items-center gap-2 text-sm mt-1">
                     <User className="h-3.5 w-3.5" />
-                    <span>{course.instructor.firstName} {course.instructor.lastName}</span>
+                    <span>{course.teacher.firstName} {course.teacher.lastName}</span>
                 </CardDescription>
             </CardHeader>
             <CardContent className="flex-grow">
