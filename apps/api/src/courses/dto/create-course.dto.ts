@@ -20,9 +20,7 @@ export class CreateCourseDto {
   @MaxLength(2000, { message: 'Description must be at most 2000 characters' })
   description?: string;
 
-    // @IsMongoId({ message: 'Invalid instructor ID' })
-    // @IsNotEmpty({ message: 'Instructor is required' })
-    // instructor: string;
+
 
   @IsBoolean()
   @IsOptional()
