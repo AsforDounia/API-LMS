@@ -10,6 +10,8 @@ import { User } from '@src/users/entities/user.entity';
 import { Role } from '@src/common/enums/role.enum';
 import { ModuleProgress } from '../module-progress/entities/module-progress.entity';
 import { Course } from '@src/courses/entities/course.entity';
+import * as fs from 'fs';
+import * as path from 'path';
 
 @Injectable()
 export class ModulesService {
@@ -19,7 +21,7 @@ export class ModulesService {
     @InjectModel(ModuleProgress.name) private readonly moduleProgressModel: Model<ModuleProgress>, // AJOUTE ICI
   ) {}
 
-  async create(createModuleDto: CreateModuleDto) {
+  async create(createModuleDto: CreateModuleDto, file?: Express.Multer.File) {
     // Validate all course IDs exist
     const courseId = createModuleDto.course;
     const foundCourse = await this.courseModel.findOne({
@@ -32,6 +34,35 @@ export class ModulesService {
     if (!foundCourse) {
       throw new BadRequestException('The course ID does not exist');
     }
+
+    if (createModuleDto.moduleType === 'pdf' || createModuleDto.moduleType === 'video') {
+      if (!file) {
+        throw new BadRequestException('File is required for PDF or video modules');
+      }
+      // Validate file type based on moduleType
+      if (createModuleDto.moduleType === 'pdf' && !file.mimetype.includes('pdf')) {
+        throw new BadRequestException('Invalid file type for PDF module');
+      }
+      if (createModuleDto.moduleType === 'video' && !file.mimetype.startsWith('video/')) {
+        throw new BadRequestException('Invalid file type for video module');
+      }
+      // Determine subdirectory
+      const subDir = createModuleDto.moduleType === 'pdf' ? 'pdfs' : 'videos';
+      // Save file
+      const uploadDir = path.join(process.cwd(), 'uploads', subDir);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(filePath, file.buffer);
+      createModuleDto.content = `/uploads/${subDir}/${fileName}`;
+    } else if (createModuleDto.moduleType === 'text') {
+      if (!createModuleDto.content) {
+        throw new BadRequestException('Content is required for text modules');
+      }
+    }
+
     const createdModule = new this.moduleModel(createModuleDto);
     return createdModule.save();
   }
@@ -63,7 +94,7 @@ export class ModulesService {
     return this.moduleModel.findById(id).exec();
   }
 
-  async update(id: ObjectId, updateModuleDto: UpdateModuleDto, user: User): Promise<Module | null> {
+  async update(id: ObjectId, updateModuleDto: UpdateModuleDto, user: User, file?: Express.Multer.File): Promise<Module | null> {
     const module = await this.moduleModel.findById(id);
     if (!module) {
       throw new Error('Module not found');
@@ -78,16 +109,42 @@ export class ModulesService {
     if (!isTeacher && !isAdmin) {
       throw new ForbiddenException('You are not authorized to update this module');
     }
+
+    if (file) {
+      // Validate file type based on moduleType if provided
+      if (updateModuleDto.moduleType) {
+        if (updateModuleDto.moduleType === 'pdf' && !file.mimetype.includes('pdf')) {
+          throw new BadRequestException('Invalid file type for PDF module');
+        }
+        if (updateModuleDto.moduleType === 'video' && !file.mimetype.startsWith('video/')) {
+          throw new BadRequestException('Invalid file type for video module');
+        }
+      }
+      // Determine subdirectory based on moduleType (use existing if not updating type)
+      const moduleType = updateModuleDto.moduleType || module.moduleType;
+      const subDir = moduleType === 'pdf' ? 'pdfs' : moduleType === 'video' ? 'videos' : '';
+      // Save file
+      const uploadDir = path.join(process.cwd(), 'uploads', subDir);
+      if (!fs.existsSync(uploadDir)) {
+        fs.mkdirSync(uploadDir, { recursive: true });
+      }
+      const fileName = `${Date.now()}-${file.originalname}`;
+      const filePath = path.join(uploadDir, fileName);
+      fs.writeFileSync(filePath, file.buffer);
+      updateModuleDto.content = `/uploads/${subDir}/${fileName}`;
+    }
+
     if(isAdmin && !isTeacher){
       if (
         updateModuleDto.title !== undefined ||
         updateModuleDto.description !== undefined ||
         updateModuleDto.order !== undefined ||
         updateModuleDto.moduleType !== undefined ||
+        updateModuleDto.content !== undefined ||
         updateModuleDto.course !== undefined
       ) {
         throw new ForbiddenException(
-          'Admins cannot update personal module fields (course, title, description, order, moduleType)',
+          'Admins cannot update personal module fields (course, title, description, order, moduleType, content)',
         );
       }
     }
