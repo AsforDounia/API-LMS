@@ -190,4 +190,11 @@ export class CoursesService {
     return overallProgress;
   }
 
+  async getModulesByCourse(courseId: Types.ObjectId) {
+    return this.moduleModel.find({
+      course: courseId,
+      deletedAt: null,
+    }).sort({ order: 1 }).exec();
+  }
 }
+
