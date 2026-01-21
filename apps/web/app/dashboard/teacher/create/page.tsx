@@ -1,6 +1,6 @@
 "use client";
 
-import { useEffect, useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
@@ -14,6 +14,7 @@ import {
 } from "@/components/ui/card";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import {
   Form,
   FormControl,
@@ -21,36 +22,32 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
+  FormDescription,
 } from "@/components/ui/form";
 import { Loader2, ArrowLeft, Save } from "lucide-react";
+import { createCourse } from "@/lib/courses";
 import api from "@/lib/api";
 import Link from "next/link";
 
-const profileSchema = z.object({
-  firstName: z
-    .string()
-    .min(2, "First name must be at least 2 characters")
-    .max(50),
-  lastName: z
-    .string()
-    .min(2, "Last name must be at least 2 characters")
-    .max(50),
+const courseSchema = z.object({
+  title: z.string().min(3, "Title must be at least 3 characters").max(100),
+  description: z.string().max(2000).optional(),
 });
 
-type ProfileFormValues = z.infer<typeof profileSchema>;
+type CourseFormValues = z.infer<typeof courseSchema>;
 
-export default function EditProfilePage() {
+export default function CreateCoursePage() {
   const router = useRouter();
+  const [userId, setUserId] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [success, setSuccess] = useState<string | null>(null);
 
-  const form = useForm<ProfileFormValues>({
-    resolver: zodResolver(profileSchema),
+  const form = useForm<CourseFormValues>({
+    resolver: zodResolver(courseSchema),
     defaultValues: {
-      firstName: "",
-      lastName: "",
+      title: "",
+      description: "",
     },
   });
 
@@ -58,35 +55,34 @@ export default function EditProfilePage() {
     const fetchProfile = async () => {
       try {
         const response = await api.get("/auth/profile");
-        form.reset({
-          firstName: response.data.firstName,
-          lastName: response.data.lastName,
-        });
+        setUserId(response.data._id);
       } catch (err) {
-        console.error("Failed to fetch profile:", err);
-        setError("Failed to load profile.");
+        setError("Failed to load user profile");
       } finally {
         setIsLoading(false);
       }
     };
-
     fetchProfile();
-  }, [form]);
+  }, []);
 
-  async function onSubmit(values: ProfileFormValues) {
+  async function onSubmit(values: CourseFormValues) {
+    if (!userId) {
+      setError("User ID not found");
+      return;
+    }
+
     setIsSaving(true);
     setError(null);
-    setSuccess(null);
 
     try {
-      await api.patch("/auth/profile", values);
-      setSuccess("Profile updated successfully!");
-      setTimeout(() => {
-        router.push("/dashboard/profile");
-      }, 1000);
+      await createCourse({
+        title: values.title,
+        description: values.description || "",
+        teacher: userId,
+      });
+      router.push("/dashboard/teacher");
     } catch (err: any) {
-      const message =
-        err.response?.data?.message || "Failed to update profile.";
+      const message = err.response?.data?.message || "Failed to create course";
       setError(Array.isArray(message) ? message[0] : message);
     } finally {
       setIsSaving(false);
@@ -102,44 +98,48 @@ export default function EditProfilePage() {
   }
 
   return (
-    <div className="container mx-auto px-4 py-10 max-w-xl">
-      <div className="mb-6">
+    <div className="max-w-2xl mx-auto space-y-6">
+      <div>
         <Button variant="ghost" asChild>
-          <Link href="/dashboard/profile">
+          <Link href="/dashboard/teacher">
             <ArrowLeft className="mr-2 h-4 w-4" />
-            Back to Profile
+            Back to My Courses
           </Link>
         </Button>
       </div>
 
       <Card>
         <CardHeader>
-          <CardTitle>Edit Profile</CardTitle>
-          <CardDescription>Update your personal information</CardDescription>
+          <CardTitle>Create New Course</CardTitle>
+          <CardDescription>
+            Fill in the details to create a new course
+          </CardDescription>
         </CardHeader>
         <CardContent>
           <Form {...form}>
-            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-4">
+            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
               {error && (
                 <div className="p-3 text-sm font-medium text-destructive bg-destructive/10 border border-destructive/20 rounded-md">
                   {error}
                 </div>
               )}
-              {success && (
-                <div className="p-3 text-sm font-medium text-green-600 bg-green-50 border border-green-200 rounded-md">
-                  {success}
-                </div>
-              )}
 
               <FormField
                 control={form.control}
-                name="firstName"
+                name="title"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>First Name</FormLabel>
+                    <FormLabel>Course Title</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={isSaving} />
+                      <Input
+                        placeholder="e.g. Introduction to Web Development"
+                        {...field}
+                        disabled={isSaving}
+                      />
                     </FormControl>
+                    <FormDescription>
+                      A clear, descriptive title for your course
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
@@ -147,34 +147,42 @@ export default function EditProfilePage() {
 
               <FormField
                 control={form.control}
-                name="lastName"
+                name="description"
                 render={({ field }) => (
                   <FormItem>
-                    <FormLabel>Last Name</FormLabel>
+                    <FormLabel>Description</FormLabel>
                     <FormControl>
-                      <Input {...field} disabled={isSaving} />
+                      <Textarea
+                        placeholder="Describe what apprenants will learn..."
+                        className="min-h-32 resize-none"
+                        {...field}
+                        disabled={isSaving}
+                      />
                     </FormControl>
+                    <FormDescription>
+                      Explain the course content and objectives
+                    </FormDescription>
                     <FormMessage />
                   </FormItem>
                 )}
               />
 
-              <div className="flex gap-4 pt-4">
+              <div className="flex gap-4">
                 <Button type="submit" disabled={isSaving}>
                   {isSaving ? (
                     <>
                       <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                      Saving...
+                      Creating...
                     </>
                   ) : (
                     <>
                       <Save className="mr-2 h-4 w-4" />
-                      Save Changes
+                      Create Course
                     </>
                   )}
                 </Button>
                 <Button type="button" variant="outline" asChild>
-                  <Link href="/dashboard/profile">Cancel</Link>
+                  <Link href="/dashboard/teacher">Cancel</Link>
                 </Button>
               </div>
             </form>

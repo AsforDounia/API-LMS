@@ -4,7 +4,10 @@ import { ModulesController } from './modules.controller';
 import { MongooseModule } from '@nestjs/mongoose';
 import { ModuleSchema } from './entities/module.entity';
 import { CourseSchema } from '@src/courses/entities/course.entity';
-import { ModuleProgress, ModuleProgressSchema } from '../module-progress/entities/module-progress.entity';
+import {
+  ModuleProgress,
+  ModuleProgressSchema,
+} from '../module-progress/entities/module-progress.entity';
 
 @Module({
   imports: [

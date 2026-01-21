@@ -1,4 +1,11 @@
-import { IsMongoId, IsString, IsArray, IsInt, IsEnum,ArrayNotEmpty } from 'class-validator';
+import {
+  IsMongoId,
+  IsString,
+  IsArray,
+  IsInt,
+  IsEnum,
+  ArrayNotEmpty,
+} from 'class-validator';
 import { QuestionType } from '../schema/question.schema';
 
 export class CreateQuestionDto {

@@ -1,4 +1,4 @@
-import { IsMongoId, IsArray, IsInt ,ArrayNotEmpty} from 'class-validator';
+import { IsMongoId, IsArray, IsInt, ArrayNotEmpty } from 'class-validator';
 
 export class CreateAnswerDto {
   @IsArray()

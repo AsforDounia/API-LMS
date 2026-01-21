@@ -1,6 +1,9 @@
 import { Module } from '@nestjs/common';
 import { MongooseModule } from '@nestjs/mongoose';
-import { ModuleProgress, ModuleProgressSchema } from './entities/module-progress.entity';
+import {
+  ModuleProgress,
+  ModuleProgressSchema,
+} from './entities/module-progress.entity';
 import { ModuleProgressService } from './module-progress.service';
 import { ModuleProgressController } from './module-progress.controller';
 

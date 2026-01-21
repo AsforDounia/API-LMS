@@ -13,7 +13,7 @@ import { ModuleType } from '@src/common/enums/module-type.enum';
 
 export class CreateModuleDto {
   @IsMongoId()
-  course!: string; 
+  course!: string;
 
   @IsString()
   @IsNotEmpty()

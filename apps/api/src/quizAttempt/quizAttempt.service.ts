@@ -11,29 +11,36 @@ import { Question } from '../question/schema/question.schema';
 @Injectable()
 export class QuizAttemptService {
   constructor(
-    @InjectModel(QuizAttempt.name) private readonly quizAttemptModel: Model<QuizAttempt>,
+    @InjectModel(QuizAttempt.name)
+    private readonly quizAttemptModel: Model<QuizAttempt>,
     @InjectModel(Quiz.name) private readonly quizModel: Model<Quiz>,
     @InjectModel(User.name) private readonly userModel: Model<User>,
     @InjectModel(Answer.name) private readonly answerModel: Model<Answer>,
     @InjectModel(Question.name) private readonly questionModel: Model<Question>,
-  ) { }
+  ) {}
 
-  async create(createQuizAttemptDto: CreateQuizAttemptDto): Promise<QuizAttempt> {
-
+  async create(
+    createQuizAttemptDto: CreateQuizAttemptDto,
+  ): Promise<QuizAttempt> {
     const { quizId, apprenantId } = createQuizAttemptDto;
 
     // Vérifier quiz et utilisateur
     const quiz = await this.quizModel.findById(quizId);
     if (!quiz) throw new NotFoundException('Quiz non trouvé');
     // Vérification de l'existence de l'utilisateur
-    const user = await this.userModel.findById(createQuizAttemptDto.apprenantId);
+    const user = await this.userModel.findById(
+      createQuizAttemptDto.apprenantId,
+    );
     if (!user) {
       throw new NotFoundException('Apprenant non trouvé');
     }
     // const attempt = new this.quizAttemptModel(createQuizAttemptDto);
     // return attempt.save();
 
-    const previousAttempts = await this.quizAttemptModel.countDocuments({ quizId, apprenantId });
+    const previousAttempts = await this.quizAttemptModel.countDocuments({
+      quizId,
+      apprenantId,
+    });
     const attemptNumber = previousAttempts + 1;
 
     const attempt = new this.quizAttemptModel({
@@ -54,20 +61,26 @@ export class QuizAttemptService {
     const answers = await this.answerModel.find({ attemptId }).exec();
 
     // Récupérer toutes les questions concernées
-    const questionIds = answers.map(ans => ans.questionId);
-    const questions = await this.questionModel.find({ _id: { $in: questionIds } }).exec();
+    const questionIds = answers.map((ans) => ans.questionId);
+    const questions = await this.questionModel
+      .find({ _id: { $in: questionIds } })
+      .exec();
 
     // Créer une map questionId -> points
     const pointsMap = new Map<string, number>();
-    questions.forEach(q => pointsMap.set(q._id.toString(), q.points));
+    questions.forEach((q) => pointsMap.set(q._id.toString(), q.points));
 
     // Calculer le score total
-    const score = answers.reduce((sum, ans) => sum + (ans.pointsEarned || 0), 0);
+    const score = answers.reduce(
+      (sum, ans) => sum + (ans.pointsEarned || 0),
+      0,
+    );
     const totalPossiblePoints = answers.reduce(
       (sum, ans) => sum + (pointsMap.get(ans.questionId.toString()) || 0),
       0,
     );
-    const percent = totalPossiblePoints > 0 ? (score / totalPossiblePoints) * 100 : 0;
+    const percent =
+      totalPossiblePoints > 0 ? (score / totalPossiblePoints) * 100 : 0;
 
     // Récupérer la tentative
     const attempt = await this.quizAttemptModel.findById(attemptId);

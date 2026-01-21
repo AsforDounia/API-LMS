@@ -29,7 +29,7 @@ export class Question extends Document {
   points: number;
 
   @Prop({ type: [Number], required: true })
-correctAnswers: number[];
+  correctAnswers: number[];
 }
 
 export const QuestionSchema = SchemaFactory.createForClass(Question);

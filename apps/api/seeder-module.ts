@@ -6,7 +6,7 @@
 // import { Model, Document } from 'mongoose';
 // import { InjectModel } from '@nestjs/mongoose';
 
-// const MONGO_URI = process.env.MONGO_URI|| 'mongodb://localhost:27017/test'; 
+// const MONGO_URI = process.env.MONGO_URI|| 'mongodb://localhost:27017/test';
 // @Module({
 //   imports: [
 //     MongooseModule.forRoot(MONGO_URI),

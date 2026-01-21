@@ -9,6 +9,7 @@ import { Enrollment } from '@src/enrollments/entities/enrollment.entity';
 import { Course } from '@src/courses/entities/course.entity';
 import { QuizAttempt } from '@src/quizAttempt/schema/quizAttempt.schema';
 import { ModuleProgress } from '@src/module-progress/entities/module-progress.entity';
+import { Module as ModuleEntity } from '@src/modules/entities/module.entity';
 import { EnrolledLearnerDto } from './dto/enrolled-learner.dto';
 import {
   StudentProgressReportDto,
@@ -19,12 +20,13 @@ import {
 @Injectable()
 export class FormateurService {
   constructor(
-    @InjectModel(Enrollment.name) private readonly enrollmentModel: Model<Enrollment>,
+    @InjectModel(Enrollment.name)
+    private readonly enrollmentModel: Model<Enrollment>,
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(QuizAttempt.name) private readonly quizAttemptModel: Model<QuizAttempt>,
     @InjectModel(ModuleProgress.name) private readonly moduleProgressModel: Model<ModuleProgress>,
-    @InjectModel('Module') private readonly moduleModel: Model<any>, // ✅ AJOUTÉ
-  ) {}
+    @InjectModel(ModuleEntity.name) private readonly moduleModel: Model<ModuleEntity>,
+  ) { }
 
   // ==========================================
   //            MÉTHODES PUBLIQUES
@@ -39,7 +41,8 @@ export class FormateurService {
       .select('_id title description createdAt')
       .lean();
 
-    if (!courses.length) throw new NotFoundException('Aucun cours trouvé pour ce formateur');
+    if (!courses.length)
+      throw new NotFoundException('Aucun cours trouvé pour ce formateur');
     return courses;
   }
 
@@ -47,7 +50,10 @@ export class FormateurService {
    * Récupère tous les apprenants inscrits aux cours de ce formateur
    */
   async getEnrolledLearners(trainerId: string): Promise<EnrolledLearnerDto[]> {
-    const courses = await this.courseModel.find({ teacher: trainerId }).select('_id').lean();
+    const courses = await this.courseModel
+      .find({ teacher: trainerId })
+      .select('_id')
+      .lean();
     if (!courses.length) throw new NotFoundException('Aucun cours trouvé');
 
     const courseIds = courses.map((c) => c._id);
@@ -65,7 +71,7 @@ export class FormateurService {
    */
   async getStudentsByCourse(courseId: string, teacherId: string) {
     await this.validateCourseOwnership(courseId, teacherId);
-    
+
     return this.enrollmentModel
       .find({ course: courseId })
       .populate('student', 'email firstName lastName')
@@ -89,21 +95,21 @@ export class FormateurService {
       .populate('course', 'title')
       .lean();
 
-    if (!enrollment) throw new NotFoundException('Étudiant non inscrit à ce cours');
+    if (!enrollment)
+      throw new NotFoundException('Étudiant non inscrit à ce cours');
 
-    // ✅ CORRECTION: Récupérer d'abord les modules du cours
+    // Récupérer d'abord les modules du cours
     const courseModules = await this.moduleModel
       .find({ course: courseId })
-      .select('_id')
+      .select('_id title') // Select title too for later use if needed
       .lean();
 
     const moduleIds = courseModules.map(m => m._id);
 
     // Récupération de données en parallèle (Performance)
     const [moduleProgressData, quizAttempts] = await Promise.all([
-      // ✅ CORRECTION: Utiliser apprenantId et filtrer par moduleIds
       this.moduleProgressModel
-        .find({ 
+        .find({
           apprenantId: studentId,
           moduleId: { $in: moduleIds }
         })
@@ -112,11 +118,11 @@ export class FormateurService {
       this.fetchQuizAttemptsForCourse(studentId, courseId),
     ]);
 
-    const moduleProgress = this.mapModuleProgress(moduleProgressData);
+    const moduleProgress = this.mapModuleProgress(moduleProgressData, courseModules);
     const quizResults = this.mapQuizResults(quizAttempts);
-    
+
     const student = enrollment.student as any;
-    
+
     return {
       studentId: student._id.toString(),
       studentEmail: student.email,
@@ -127,7 +133,7 @@ export class FormateurService {
       moduleProgress,
       quizResults,
       ...this.calculateQuizStats(quizResults),
-      enrolledAt: (enrollment as any).createdAt,
+      enrolledAt: (enrollment as any).createdAt as Date,
       lastActivityAt: this.findLastActivity(moduleProgressData, quizAttempts),
     };
   }
@@ -135,12 +141,24 @@ export class FormateurService {
   /**
    * Génère les rapports de progression pour TOUS les étudiants d'un cours
    */
-  async getCourseProgressReports(courseId: string, teacherId: string): Promise<StudentProgressReportDto[]> {
+  async getCourseProgressReports(
+    courseId: string,
+    teacherId: string,
+  ): Promise<StudentProgressReportDto[]> {
     await this.validateCourseOwnership(courseId, teacherId);
-    const enrollments = await this.enrollmentModel.find({ course: courseId }).select('student').lean();
+    const enrollments = await this.enrollmentModel
+      .find({ course: courseId })
+      .select('student')
+      .lean();
 
     return Promise.all(
-      enrollments.map((e) => this.getStudentProgressReport(courseId, e.student.toString(), teacherId)),
+      enrollments.map((e) =>
+        this.getStudentProgressReport(
+          courseId,
+          e.student.toString(),
+          teacherId,
+        ),
+      ),
     );
   }
 
@@ -148,15 +166,26 @@ export class FormateurService {
   //      MÉTHODES PRIVÉES (LOGIQUE PARTAGÉE)
   // ==========================================
 
-  private async validateCourseOwnership(courseId: string, teacherId: string): Promise<void> {
-    const course = await this.courseModel.findById(courseId).select('teacher').lean();
+  private async validateCourseOwnership(
+    courseId: string,
+    teacherId: string,
+  ): Promise<void> {
+    const course = await this.courseModel
+      .findById(courseId)
+      .select('teacher')
+      .lean();
     if (!course) throw new NotFoundException('Cours introuvable');
     if (course.teacher.toString() !== teacherId) {
-      throw new ForbiddenException('Accès refusé : vous nêtes pas le propriétaire de ce cours');
+      throw new ForbiddenException(
+        'Accès refusé : vous n\'êtes pas le propriétaire de ce cours',
+      );
     }
   }
 
-  private async fetchQuizAttemptsForCourse(studentId: string, courseId: string) {
+  private async fetchQuizAttemptsForCourse(
+    studentId: string,
+    courseId: string,
+  ) {
     const attempts = await this.quizAttemptModel
       .find({ apprenantId: studentId })
       .populate({
@@ -166,21 +195,30 @@ export class FormateurService {
       .sort({ startedAt: -1 })
       .lean();
 
-    return attempts.filter((a: any) => a.quizId?.moduleId?.courseId?.toString() === courseId);
+    return attempts.filter(
+      (a: any) => a.quizId?.moduleId?.courseId?.toString() === courseId,
+    );
   }
 
-  // ✅ CORRECTION: Utiliser moduleId au lieu de module
-  private mapModuleProgress(data: any[]): ModuleProgressDto[] {
-    return data.map((mp) => {
-      const module = mp.moduleId; // ✅ CORRIGÉ: moduleId au lieu de module
-      
+  private mapModuleProgress(data: any[], allModules: any[]): ModuleProgressDto[] {
+    // Map existing progress
+    const progressMap = new Map();
+    data.forEach(mp => {
+      if (mp.moduleId) {
+        progressMap.set(mp.moduleId._id ? mp.moduleId._id.toString() : mp.moduleId.toString(), mp);
+      }
+    });
+
+    return allModules.map((module) => {
+      const mp = progressMap.get(module._id.toString());
+
       return {
-        moduleId: module?._id?.toString() || '',
-        moduleTitle: module?.title || 'Module sans titre',
-        completionPercentage: mp.progressPercentage || 0, // ✅ CORRIGÉ: utiliser progressPercentage
-        completedLessons: 0, // Ajustez selon votre logique
-        totalLessons: 0, // Ajustez selon votre logique
-        lastAccessedAt: mp.updatedAt,
+        moduleId: module._id.toString(),
+        moduleTitle: module.title,
+        completionPercentage: mp ? mp.progressPercentage || 0 : 0,
+        completedLessons: 0,
+        totalLessons: 0,
+        lastAccessedAt: mp ? mp.updatedAt : undefined,
       };
     });
   }
@@ -202,7 +240,10 @@ export class FormateurService {
 
   private calculateOverallProgress(modules: ModuleProgressDto[]): number {
     if (!modules.length) return 0;
-    const sum = modules.reduce((acc, curr) => acc + curr.completionPercentage, 0);
+    const sum = modules.reduce(
+      (acc, curr) => acc + curr.completionPercentage,
+      0,
+    );
     return Math.round(sum / modules.length);
   }
 
@@ -210,20 +251,23 @@ export class FormateurService {
     const total = results.length;
     return {
       totalQuizzesTaken: total,
-      totalQuizzesPassed: results.filter(r => r.passed).length,
-      averageQuizScore: total > 0 
-        ? Math.round(results.reduce((s, r) => s + r.score, 0) / total) 
-        : 0,
+      totalQuizzesPassed: results.filter((r) => r.passed).length,
+      averageQuizScore:
+        total > 0
+          ? Math.round(results.reduce((s, r) => s + r.score, 0) / total)
+          : 0,
     };
   }
 
   private findLastActivity(modules: any[], quizzes: any[]): Date | undefined {
     const dates = [
-      ...modules.map(m => m.updatedAt),
-      ...quizzes.map(q => q.completedAt || q.startedAt)
+      ...modules.map((m) => m.updatedAt),
+      ...quizzes.map((q) => q.completedAt || q.startedAt),
     ].filter(Boolean);
-    
-    return dates.length ? new Date(Math.max(...dates.map(d => new Date(d).getTime()))) : undefined;
+
+    return dates.length
+      ? new Date(Math.max(...dates.map((d) => new Date(d).getTime())))
+      : undefined;
   }
 
   private groupEnrollmentsByLearner(enrollments: any[]): EnrolledLearnerDto[] {

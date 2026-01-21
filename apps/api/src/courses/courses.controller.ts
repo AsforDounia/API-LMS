@@ -62,7 +62,7 @@ export class CoursesController {
   @Roles(Role.TEACHER,Role.ADMIN)
   remove(
     @Param('id', ParseObjectIdPipe) id: ObjectId,
-    @CurrentUser() user: User
+    @CurrentUser() user: User,
   ) {
     return this.coursesService.remove(id, user);
   }
@@ -76,21 +76,27 @@ export class CoursesController {
   // }
 
   @Get(':courseId/resume')
-    @Roles(Role.STUDENT)
+  @Roles(Role.STUDENT)
   async resumeCourse(
     @Param('courseId', ParseObjectIdPipe) courseId: string,
     @CurrentUser() user: User,
   ) {
-    return this.coursesService.getResumeModule(new Types.ObjectId(courseId), user._id);
+    return this.coursesService.getResumeModule(
+      new Types.ObjectId(courseId),
+      user._id,
+    );
   }
 
   @Get(':id/calculate-progress/:apprenantId')
-    @Roles(Role.STUDENT)
+  @Roles(Role.STUDENT)
   async calculateCourseProgress(
     @Param('id', ParseObjectIdPipe) courseId: ObjectId,
     @Param('apprenantId', ParseObjectIdPipe) apprenantId: ObjectId,
   ) {
-    const progress = await this.coursesService.calculateCourseProgress(courseId, apprenantId);
+    const progress = await this.coursesService.calculateCourseProgress(
+      courseId,
+      apprenantId,
+    );
     return {
       courseId,
       apprenantId,

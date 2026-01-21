@@ -14,7 +14,7 @@ export class QuizService {
     private readonly quizModel: Model<Quiz>,
     @InjectModel(Question.name)
     private readonly questionModel: Model<Question>,
-  ) {}
+  ) { }
 
   async createQuiz(createQuizDto: CreateQuizDto): Promise<Quiz> {
     const quiz = new this.quizModel(createQuizDto);
@@ -25,11 +25,11 @@ export class QuizService {
     const question = new this.questionModel(createQuestionDto);
     return question.save();
   }
- // Récupérer un quiz par son ID
+  // Récupérer un quiz par son ID
   async getQuizById(id: string): Promise<Quiz> {
     const quiz = await this.quizModel
       .findById(id);
-     
+
 
     if (!quiz) {
       throw new NotFoundException(`Quiz avec l'ID ${id} introuvable`);
