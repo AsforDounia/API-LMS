@@ -38,8 +38,6 @@ type CourseFormValues = z.infer<typeof courseSchema>;
 
 export default function CreateCoursePage() {
   const router = useRouter();
-  const [userId, setUserId] = useState<string | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
 
@@ -51,26 +49,7 @@ export default function CreateCoursePage() {
     },
   });
 
-  useEffect(() => {
-    const fetchProfile = async () => {
-      try {
-        const response = await api.get("/auth/profile");
-        setUserId(response.data._id);
-      } catch (err) {
-        setError("Failed to load user profile");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    fetchProfile();
-  }, []);
-
   async function onSubmit(values: CourseFormValues) {
-    if (!userId) {
-      setError("User ID not found");
-      return;
-    }
-
     setIsSaving(true);
     setError(null);
 
@@ -78,7 +57,6 @@ export default function CreateCoursePage() {
       await createCourse({
         title: values.title,
         description: values.description || "",
-        teacher: userId,
       });
       router.push("/dashboard/teacher");
     } catch (err: any) {
@@ -89,13 +67,7 @@ export default function CreateCoursePage() {
     }
   }
 
-  if (isLoading) {
-    return (
-      <div className="flex h-[50vh] w-full items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
-    );
-  }
+
 
   return (
     <div className="max-w-2xl mx-auto space-y-6">

@@ -92,9 +92,7 @@ export class AnswerService {
     return this.answerModel.find({ attemptId }).exec();
   }
 
-  async submitQuiz(
-    submitQuizDto: SubmitQuizDto,
-  ): Promise<{
+  async submitQuiz(submitQuizDto: SubmitQuizDto): Promise<{
     success: boolean;
     message: string;
     results: { questionId: string; status: string; error?: any }[];

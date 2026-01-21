@@ -51,12 +51,12 @@ export function DashboardNav() {
     { href: "/dashboard/courses", label: "Courses", icon: GraduationCap },
     ...(userRole === "teacher" || userRole === "admin"
       ? [
-        {
-          href: "/dashboard/teacher",
-          label: "Teacher",
-          icon: Briefcase,
-        },
-      ]
+          {
+            href: "/dashboard/teacher",
+            label: "Teacher",
+            icon: Briefcase,
+          },
+        ]
       : []),
     { href: "/dashboard/profile", label: "Profile", icon: User },
   ];

@@ -17,7 +17,6 @@ export interface Course {
 export interface CreateCourseData {
   title: string;
   description?: string;
-  teacher: string;
 }
 
 export interface UpdateCourseData {

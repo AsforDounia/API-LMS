@@ -29,7 +29,7 @@ export class CoursesService {
 
     @InjectModel(Enrollment.name)
     private readonly enrollmentModel: Model<Enrollment>,
-  ) { }
+  ) {}
 
   async create(createCourseDto: CreateCourseDto, user: User): Promise<Course> {
     const course = new this.courseModel({

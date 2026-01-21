@@ -94,9 +94,7 @@ export class AuthService {
     }
   }
 
-  async register(
-    registerDto: RegisterDto,
-  ): Promise<{
+  async register(registerDto: RegisterDto): Promise<{
     message: string;
     accessToken: string;
     refreshToken: string;
@@ -165,9 +163,7 @@ export class AuthService {
     };
   }
 
-  async login(
-    loginDto: LoginDto,
-  ): Promise<{
+  async login(loginDto: LoginDto): Promise<{
     message: string;
     accessToken: string;
     refreshToken: string;
