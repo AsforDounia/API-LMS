@@ -33,6 +33,12 @@ export class ModulesController {
     return this.modulesService.findAll();
   }
 
+  @Get('teacher')
+  @Roles(Role.TEACHER)
+  findByTeacher(@CurrentUser() user: User) {
+    return this.modulesService.findByTeacher(user._id);
+  }
+
   @Get(':id')
   findOne(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.modulesService.findOne(id);
