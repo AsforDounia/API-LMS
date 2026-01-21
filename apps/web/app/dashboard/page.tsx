@@ -14,10 +14,16 @@ interface Course {
     isPublished: boolean
 }
 
+export enum Role {
+  STUDENT = 'student',
+  TEACHER = 'teacher',
+  ADMIN = 'admin',
+}
 interface User {
     firstName: string
     lastName: string
     email: string
+    role: Role
 }
 
 export default function DashboardPage() {
@@ -44,6 +50,7 @@ export default function DashboardPage() {
         fetchData()
     }, [])
 
+    console.log(user);
     if (isLoading) {
         return (
             <div className="flex h-[50vh] items-center justify-center">
@@ -56,7 +63,7 @@ export default function DashboardPage() {
         <div className="space-y-6">
             <div className="flex items-center justify-between">
                 <h2 className="text-3xl font-bold tracking-tight">
-                    Welcome back, {user?.firstName || "Learner"}! 👋
+                    Welcome back, {(user?.firstName || user?.role) || "Learner"}! 👋
                 </h2>
                 <Button asChild>
                     <Link href="/dashboard/courses">Browse Courses</Link>
