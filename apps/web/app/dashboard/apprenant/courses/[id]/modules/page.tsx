@@ -31,11 +31,11 @@ export default function ModulesPage() {
     }, []);
 
     useEffect(() => {
-        if (!userId || !params.courseId) return;
+        if (!userId || !params.id) return;
         const fetchModules = async () => {
             try {
                 const response = await api.get(
-                    `/enrollments/modules/${params.courseId}/${userId}`
+                    `/enrollments/modules/${params.id}/${userId}`
                 );
                 console.log("Modules récupérés :", response);
                 setModules(response.data || []);
@@ -46,7 +46,7 @@ export default function ModulesPage() {
             }
         };
         fetchModules();
-    }, [userId, params.courseId]);
+    }, [userId, params.id]);
 
     if (loading)
         return (
