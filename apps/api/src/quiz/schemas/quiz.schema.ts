@@ -14,6 +14,9 @@ export class Quiz extends Document {
 
   @Prop({ default: false })
   isRequired: boolean; //si le quiz est obligatoire
+
+  @Prop({ default: null })
+  deletedAt: Date;
 }
 
 export const QuizSchema = SchemaFactory.createForClass(Quiz);

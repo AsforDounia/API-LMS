@@ -3,7 +3,7 @@ import { useEffect, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2 } from "lucide-react"
 import api from "@/lib/api"
-import { DashboardNav } from "@/components/layout/dashboard-nav"
+import { DashboardSidebar } from "@/components/layout/dashboard-sidebar"
 
 export default function DashboardLayout({
     children,
@@ -12,6 +12,7 @@ export default function DashboardLayout({
 }) {
     const router = useRouter()
     const [isLoading, setIsLoading] = useState(true)
+    const [userRole, setUserRole] = useState<string | null>(null)
 
     useEffect(() => {
         const validateSession = async () => {
@@ -22,11 +23,10 @@ export default function DashboardLayout({
             }
 
             try {
-                // Validate token by hitting the profile endpoint
-                await api.get("/auth/profile")
+                const response = await api.get("/auth/profile")
+                setUserRole(response.data.role)
                 setIsLoading(false)
             } catch (error) {
-                // Token invalid or expired
                 localStorage.removeItem("token")
                 router.push("/auth/login")
             }
@@ -34,6 +34,17 @@ export default function DashboardLayout({
 
         validateSession()
     }, [router])
+
+    const handleLogout = async () => {
+        try {
+            await api.post("/auth/logout")
+        } catch (error) {
+            console.error("Logout error:", error)
+        } finally {
+            localStorage.removeItem("token")
+            router.push("/auth/login")
+        }
+    }
 
     if (isLoading) {
         return (
@@ -44,10 +55,12 @@ export default function DashboardLayout({
     }
 
     return (
-        <div className="min-h-screen bg-muted/40">
-            <DashboardNav />
-            <main className="container mx-auto max-w-6xl px-4 py-6">
-                {children}
+        <div className="flex h-screen bg-background">
+            <DashboardSidebar userRole={userRole || ""} onLogout={handleLogout} />
+            <main className="flex-1 overflow-auto">
+                <div className="container mx-auto p-6">
+                    {children}
+                </div>
             </main>
         </div>
     )

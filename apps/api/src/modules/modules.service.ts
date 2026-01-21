@@ -9,21 +9,28 @@ import { type ObjectId } from '@src/common/types/objectid.type';
 import { User } from '@src/users/entities/user.entity';
 import { Role } from '@src/common/enums/role.enum';
 import { ModuleProgress } from '../module-progress/entities/module-progress.entity';
+import { Course } from '@src/courses/entities/course.entity';
 
 @Injectable()
 export class ModulesService {
   constructor(
     @InjectModel(Module.name) private readonly moduleModel: Model<Module>,
-    @InjectCourseModel('Course') private readonly courseModel: Model<any>,
+    @InjectCourseModel('Course') private readonly courseModel: Model<Course>,
     @InjectModel(ModuleProgress.name) private readonly moduleProgressModel: Model<ModuleProgress>, // AJOUTE ICI
   ) {}
 
   async create(createModuleDto: CreateModuleDto) {
     // Validate all course IDs exist
     const courseId = createModuleDto.course;
-    const foundCourse = await this.courseModel.findOne({ _id: courseId, deletedAt: { $exists: false } }).exec();
-    if (foundCourse) {
-      throw new BadRequestException('The course ID do not exist');
+    const foundCourse = await this.courseModel.findOne({
+      _id: courseId,
+      $or: [
+        { deletedAt: { $exists: false } },
+        { deletedAt: null }
+      ]
+    }).exec();
+    if (!foundCourse) {
+      throw new BadRequestException('The course ID does not exist');
     }
     const createdModule = new this.moduleModel(createModuleDto);
     return createdModule.save();
@@ -31,6 +38,25 @@ export class ModulesService {
 
   async findAll(): Promise<Module[]> {
     return this.moduleModel.find().exec();
+  }
+
+  async findByTeacher(teacherId: ObjectId): Promise<Module[]> {
+    const courses = await this.courseModel.find({
+      teacher: teacherId,
+      $or: [
+        { deletedAt: { $exists: false } },
+        { deletedAt: null }
+      ]
+    }).select('_id').exec();
+    const courseIds = courses.map(c => c._id);
+    const modules = await this.moduleModel.find({
+      course: { $in: courseIds },
+            $or: [
+        { deletedAt: { $exists: false } },
+        { deletedAt: null }
+      ]
+    }).populate('course').exec();
+    return modules
   }
 
   async findOne(id: ObjectId): Promise<Module | null> {
