@@ -1,4 +1,7 @@
-import { Injectable, BadRequestException, ForbiddenException, NotFoundException } from '@nestjs/common';
+import { Injectable, BadRequestException, ForbiddenException, NotFoundException, StreamableFile } from '@nestjs/common';
+import { Response } from 'express';
+import { createReadStream } from 'fs';
+import { join } from 'path';
 import { InjectModel } from '@nestjs/mongoose';
 import { Model, Types } from 'mongoose';
 import { CreateModuleDto } from './dto/create-module.dto';
@@ -56,7 +59,7 @@ export class ModulesService {
       const fileName = `${Date.now()}-${file.originalname}`;
       const filePath = path.join(uploadDir, fileName);
       fs.writeFileSync(filePath, file.buffer);
-      createModuleDto.content = `/uploads/${subDir}/${fileName}`;
+      createModuleDto.content = `uploads/${subDir}/${fileName}`;
     } else if (createModuleDto.moduleType === 'text') {
       if (!createModuleDto.content) {
         throw new BadRequestException('Content is required for text modules');
@@ -224,5 +227,34 @@ export class ModulesService {
         { upsert: true }
       );
     }
+  }
+
+  async getFile(id: ObjectId, res: Response) {
+    const module = await this.moduleModel.findById(id).exec();
+    if (!module) {
+      throw new NotFoundException('Module not found');
+    }
+
+    if (!module.content || module.moduleType === 'text') {
+      throw new BadRequestException('This module does not have a file');
+    }
+
+    let contentPath = module.content;
+    if (contentPath.startsWith('/')) {
+      contentPath = contentPath.slice(1);
+    }
+    const filePath = join(process.cwd(), contentPath);
+    const file = createReadStream(filePath);
+
+    file.on('error', () => {
+      throw new NotFoundException('File not found');
+    });
+
+    res.set({
+      'Content-Type': module.moduleType === 'pdf' ? 'application/pdf' : 'video/mp4',
+      'Content-Disposition': `inline; filename="${module.title}"`,
+    });
+
+    file.pipe(res);
   }
 }

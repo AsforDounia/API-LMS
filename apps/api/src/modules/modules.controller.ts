@@ -10,7 +10,9 @@ import {
   UseInterceptors,
   UploadedFile,
   BadRequestException,
+  Res,
 } from '@nestjs/common';
+import type { Response } from 'express';
 import { FileInterceptor } from '@nestjs/platform-express';
 import { ParseObjectIdPipe } from '@src/common/pipes';
 import { type ObjectId } from '@src/common/types/objectid.type';
@@ -47,6 +49,11 @@ export class ModulesController {
   @Get(':id')
   findOne(@Param('id', ParseObjectIdPipe) id: ObjectId) {
     return this.modulesService.findOne(id);
+  }
+
+  @Get(':id/file')
+  async getFile(@Param('id', ParseObjectIdPipe) id: ObjectId, @Res() res: Response) {
+    return this.modulesService.getFile(id, res);
   }
 
   @Patch(':id')
