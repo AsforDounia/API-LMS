@@ -107,6 +107,21 @@ export default function ModuleContentPage() {
                         >
                             Votre navigateur ne supporte pas la lecture de vidéos.
                         </video>
+                        <div className="mt-4 text-center">
+                            <a
+                                href={fileUrl}
+                                target="_blank"
+                                rel="noopener noreferrer"
+                                className="text-blue-600 hover:text-blue-800 underline"
+                            >
+                                Ouvrir la vidéo dans un nouvel onglet
+                            </a>
+                            <div className="mt-2">
+                                <Button asChild>
+                                    <a href={fileUrl} download={`${module.title}.mp4`}>Télécharger la vidéo</a>
+                                </Button>
+                            </div>
+                        </div>
                     </div>
                 );
             case 'pdf':
@@ -126,6 +141,11 @@ export default function ModuleContentPage() {
                             >
                                 Ouvrir le PDF dans un nouvel onglet
                             </a>
+                            <div className="mt-2">
+                                <Button asChild>
+                                    <a href={fileUrl} download={`${module.title}.pdf`}>Télécharger le PDF</a>
+                                </Button>
+                            </div>
                         </div>
                     </div>
                 );
