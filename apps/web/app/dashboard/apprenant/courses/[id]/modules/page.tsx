@@ -1,7 +1,11 @@
 "use client";
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import api from "@/lib/api";
+export enum ModuleType {
+  PDF = 'pdf',
+  VIDEO = 'video',
+}
 
 type Module = {
     _id: string;
@@ -9,10 +13,12 @@ type Module = {
     description: string;
     order: number;
     isPublished: boolean;
+    moduleType: ModuleType;
 };
 
 export default function ModulesPage() {
     const params = useParams();
+    const router = useRouter();
     const [modules, setModules] = useState<Module[]>([]);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState("");
@@ -48,6 +54,10 @@ export default function ModulesPage() {
         fetchModules();
     }, [userId, params.id]);
 
+    const handleViewContent = (moduleId: string) => {
+        router.push(`/dashboard/apprenant/courses/${params.id}/modules/${moduleId}`);
+    };
+
     if (loading)
         return (
             <div className="flex justify-center items-center h-64">
@@ -62,6 +72,7 @@ export default function ModulesPage() {
             </div>
         );
 
+        console.log(modules);
     return (
         <div className="min-h-screen bg-gradient-to-br from-blue-50 via-white to-purple-50 py-12 px-4">
             <div className="max-w-4xl mx-auto">
@@ -115,10 +126,23 @@ export default function ModulesPage() {
                                         <p className="text-gray-600 leading-relaxed ml-11">
                                             {module.description}
                                         </p>
+                                        <p className="text-gray-600 leading-relaxed ml-11">
+                                            {module.moduleType}
+                                        </p>
                                     </div>
 
-                                    {/* Badge de statut */}
-                                    <div className="flex-shrink-0">
+                                    {/* Actions */}
+                                    <div className="flex-shrink-0 flex flex-col gap-2">
+                                        {module.isPublished && (
+                                            <button
+                                                onClick={() => handleViewContent(module._id)}
+                                                className="px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                                            >
+                                                Voir le contenu
+                                            </button>
+                                        )}
+
+                                        {/* Badge de statut */}
                                         {module.isPublished ? (
                                             <div className="flex items-center gap-2 px-4 py-2 bg-green-50 border border-green-200 rounded-lg">
                                                 <svg
