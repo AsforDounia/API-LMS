@@ -4,8 +4,7 @@ import {
   Question,
   QuizAttempt,
   Answer,
-  SubmitQuizDto,
-  SubmitAnswerDto,
+ 
 } from "@/types/quiz.types"
 
 // ========== QUIZ APIs ==========
