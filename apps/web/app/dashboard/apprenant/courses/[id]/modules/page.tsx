@@ -160,6 +160,21 @@ export default function ModulesPage() {
                                         )}
                                     </div>
                                 </div>
+
+                                {/* Action Buttons */}
+                                <div className="flex gap-2 mt-4 ml-11">
+                                    {module.isPublished && (
+                                        <a
+                                            href={`/dashboard/apprenant/courses/${params.id}/modules/${module._id}/quizzes`}
+                                            className="inline-flex items-center gap-2 px-4 py-2 bg-blue-600 hover:bg-blue-700 text-white rounded-lg font-medium transition-colors"
+                                        >
+                                            <svg className="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 6.253v13m0-13C6.5 6.253 2 10.753 2 16.5S6.5 26.5 12 26.5s10-4.477 10-10S17.5 6.253 12 6.253z" />
+                                            </svg>
+                                            Quizzes
+                                        </a>
+                                    )}
+                                </div>
                             </div>
 
                             {/* Overlay pour modules verrouillés */}
