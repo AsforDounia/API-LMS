@@ -64,7 +64,7 @@ export default function CreateCoursePage() {
             await createCourse({
                 title: values.title,
                 description: values.description || "",
-                instructor: userId,
+                teacher: userId,
             })
             router.push("/dashboard/instructor")
         } catch (err: any) {

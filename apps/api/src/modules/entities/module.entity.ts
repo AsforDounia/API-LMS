@@ -18,6 +18,9 @@ export class Module {
   @Prop({ required: true })
   moduleType!: string;
 
+  @Prop({ required: true })
+  content!: string;
+
   @Prop({ default: false })
   isPublished!: boolean;
 

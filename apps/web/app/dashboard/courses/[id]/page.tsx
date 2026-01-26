@@ -85,7 +85,7 @@ export default function CourseDetailPage() {
                                     <CardTitle className="text-2xl">{course.title}</CardTitle>
                                     <CardDescription className="flex items-center gap-2 mt-1">
                                         <User className="h-4 w-4" />
-                                        {course.instructor.firstName} {course.instructor.lastName}
+                                        {course.teacher.firstName} {course.teacher.lastName}
                                     </CardDescription>
                                 </div>
                             </div>
@@ -113,8 +113,10 @@ export default function CourseDetailPage() {
                     </div>
 
                     <div className="pt-4 border-t">
-                        <Button size="lg">
-                            Start Learning
+                      <Button size="lg" asChild>
+                            <Link href={`/dashboard/apprenant/courses/${params.id}/modules`}>
+                                Start Learning
+                            </Link>
                         </Button>
                     </div>
                 </CardContent>
