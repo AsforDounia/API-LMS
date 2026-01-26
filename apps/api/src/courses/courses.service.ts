@@ -48,10 +48,16 @@ export class CoursesService {
       ]
     }).exec();
   }
-
+   
   async findOne(id: ObjectId): Promise<Course | null> {
     // Exclude soft-deleted courses
-    return this.courseModel.findOne({ _id: id, deletedAt: { $exists: false } }).exec();
+    return this.courseModel.findOne({
+       _id: id, 
+       $or: [
+        { deletedAt: { $exists: false } },
+        { deletedAt: null }
+      ],
+    }).exec();
   }
 
   async update(id: ObjectId, updateCourseDto: UpdateCourseDto, user: User): Promise<Course> {
