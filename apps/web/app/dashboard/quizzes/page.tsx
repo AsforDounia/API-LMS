@@ -11,6 +11,8 @@ import { showSuccess, showError } from "@/components/ui/toast";
 import { QuizCard } from "@/components/quizzes/quiz-card"
 import { QuestionsManager } from "@/components/quizzes/questions-manager"
 import { ConfirmDialog } from "@/components/ui/confirm-dialog"
+import { useRouter } from "next/navigation";
+import api from "@/lib/api"
 
 export default function QuizzesPage() {
     const [quizzes, setQuizzes] = useState<Quiz[]>([])
@@ -22,10 +24,24 @@ export default function QuizzesPage() {
     const [selectedQuiz, setSelectedQuiz] = useState<Quiz | null>(null)
     const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false)
     const [deletingQuizId, setDeletingQuizId] = useState<string | null>(null)
+    const router = useRouter();
 
     useEffect(() => {
-        loadQuizzes()
-    }, [])
+        const checkRoleAndFetch = async () => {
+            try {
+                const profile = await api.get("/auth/profile");
+                if (profile.data.role !== "admin") {
+                    router.replace("/dashboard");
+                    return;
+                }
+                loadQuizzes();
+            } catch (error) {
+                showError("Accès refusé ou session expirée");
+                router.replace("/auth/login");
+            }
+        };
+        checkRoleAndFetch();
+    }, [router]);
 
     const loadQuizzes = async () => {
         try {

@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { showSuccess, showError } from "@/components/ui/toast";
+  import { useRouter } from "next/navigation";
 
 interface Course {
   _id: string;
@@ -15,6 +16,7 @@ export default function AdminCoursesPage() {
   const [courses, setCourses] = useState<Course[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+    const router = useRouter();
 
   useEffect(() => {
     const fetchCourses = async () => {
@@ -29,6 +31,25 @@ export default function AdminCoursesPage() {
     };
     fetchCourses();
   }, []);
+  
+    useEffect(() => {
+        const checkRoleAndFetch = async () => {
+            try {
+                const profile = await api.get("/auth/profile");
+                if (profile.data.role !== "admin") {
+                    router.replace("/dashboard");
+                    return;
+                }
+                const res = await api.get("/courses");
+                setCourses(res.data || []);
+            } catch (err) {
+                setError("Erreur lors du chargement des cours.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkRoleAndFetch();
+    }, [router]);
 
   const handleDelete = async (id: string) => {
     if (!window.confirm("Supprimer ce cours ?")) return;
