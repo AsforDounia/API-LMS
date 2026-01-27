@@ -17,16 +17,19 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
     const getNavItems = () => {
         const baseItems = [
             { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/dashboard/courses", label: "Courses", icon: GraduationCap },
+
         ]
 
         if (userRole === "teacher") {
             baseItems.push({href: "/dashboard/quizzes", label: "Quizzes", icon: ListChecks })
         }
-        if (userRole === "teacher" || userRole === "admin") {
+        if (userRole === "teacher" ) {
             baseItems.push({ href: "/dashboard/instructor", label: "Instructor", icon: Briefcase })
         }
 
+        if( userRole === "teacher" || userRole === "student") {
+            baseItems.push({ href: "/dashboard/courses", label: "Courses", icon: GraduationCap })
+        }
         if (userRole === "admin") {
             baseItems.push({ href: "/dashboard/admin/users", label: "Utilisateurs", icon: User });
         }

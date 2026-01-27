@@ -32,7 +32,7 @@ export class QuizService {
 
   async findAll(): Promise<Quiz[]> {
     // Exclude soft-deleted courses
-    return this.quizModel.find({ deletedAt: { $exists: false } }).populate('moduleId').exec();
+    return this.quizModel.find({ $or: [{ deletedAt: { $exists: false } }, { deletedAt: null }] }).populate('moduleId').exec();
   }
   async getQuestionsByQuiz(quizId: string): Promise<Question[]> {
     return this.questionModel.find({ quizId }).exec();
