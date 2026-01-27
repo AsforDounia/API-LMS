@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { AppController } from './app.controller';
+import { UploadsController } from './common/controllers/uploads.controller';
 import { AppService } from './app.service';
 import { UsersModule } from './users/users.module';
 import { AuthModule } from './auth/auth.module';
@@ -31,7 +32,7 @@ import { ModuleProgressModule } from './module-progress/module-progress.module';
     EnrollmentsModule,
     ModuleProgressModule,
   ],
-  controllers: [AppController],
+  controllers: [AppController, UploadsController],
   providers: [AppService],
 })
-export class AppModule {}
+export class AppModule { }

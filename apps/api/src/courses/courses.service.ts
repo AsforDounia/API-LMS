@@ -29,7 +29,7 @@ export class CoursesService {
 
     @InjectModel(Enrollment.name)
     private readonly enrollmentModel: Model<Enrollment>,
-  ) {}
+  ) { }
 
   async create(createCourseDto: CreateCourseDto, user: User): Promise<Course> {
     const course = new this.courseModel({
@@ -48,7 +48,7 @@ export class CoursesService {
       .populate('teacher', 'firstName lastName email role')
       .exec();
   }
-   
+
   async findOne(id: ObjectId): Promise<Course | null> {
     // Exclude soft-deleted courses
     return this.courseModel
@@ -218,5 +218,11 @@ export class CoursesService {
     const overallProgress = Math.round(totalProgress / totalModules);
 
     return overallProgress;
+  }
+  async getModulesByCourse(courseId: Types.ObjectId): Promise<Module[]> {
+    return this.moduleModel
+      .find({ course: courseId, deletedAt: { $exists: false } })
+      .sort({ order: 1 })
+      .exec();
   }
 }

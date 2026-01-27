@@ -1,14 +1,7 @@
 "use client";
 
-<<<<<<< HEAD
-import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { BookOpen, LayoutDashboard, GraduationCap, User, LogOut, Briefcase, ListChecks,BarChart3 } from "lucide-react"
-import { Button } from "@/components/ui/button"
-import { cn } from "@/lib/utils"
-=======
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
   LayoutDashboard,
@@ -16,73 +9,66 @@ import {
   User,
   LogOut,
   Briefcase,
+  Shield,
+  ListChecks,
+  BarChart3
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
->>>>>>> bc978cf (refactor: Rename instructor to teacher, consolidate course pages, and update API models and UI components.)
+import { Role } from "@/lib/types";
+import api from "@/lib/api";
+import Cookies from "js-cookie";
 
 interface DashboardSidebarProps {
   userRole: string;
-  onLogout: () => void;
 }
 
 export function DashboardSidebar({
   userRole,
-  onLogout,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
 
-<<<<<<< HEAD
-    const getNavItems = () => {
-        const baseItems = [
-            { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      Cookies.remove("token");
+      router.push("/auth/login");
+    }
+  };
 
-        ]
-
-        if (userRole === "teacher") {
-            baseItems.push({href: "/dashboard/quizzes", label: "Quizzes", icon: ListChecks },
-{ href: "/dashboard/formateur/students", label: "Suivi Apprenants", icon: BarChart3 }
-            )
-        }
-        if (userRole === "teacher" ) {
-            baseItems.push({ href: "/dashboard/instructor", label: "Instructor", icon: Briefcase })
-        }
-
-        if( userRole === "teacher" || userRole === "student") {
-            baseItems.push({ href: "/dashboard/courses", label: "Courses", icon: GraduationCap })
-        }
-        if (userRole === "admin") {
-            baseItems.push({ href: "/dashboard/admin/users", label: "Utilisateurs", icon: User });
-        }
-
-        if (userRole === "admin") {
-            baseItems.push({ href: "/dashboard/admin/courses", label: "Cours", icon: GraduationCap });
-        }
-
-
-        baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User });
-        return baseItems;
-=======
   const getNavItems = () => {
     const baseItems = [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/dashboard/courses", label: "Courses", icon: GraduationCap },
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     ];
 
-    if (userRole === "teacher" || userRole === "admin") {
-      baseItems.push({
-        href: "/dashboard/teacher",
-        label: "Teacher",
-        icon: Briefcase,
-      });
->>>>>>> bc978cf (refactor: Rename instructor to teacher, consolidate course pages, and update API models and UI components.)
+    if (userRole === Role.STUDENT) {
+      baseItems.push({ href: "/dashboard/courses", label: "My Learning", icon: GraduationCap });
     }
 
-    baseItems.push({
-      href: "/dashboard/profile",
-      label: "Profile",
-      icon: User,
-    });
+    if (userRole === Role.TEACHER) {
+      baseItems.push(
+        { href: "/dashboard/quizzes", label: "Quizzes", icon: ListChecks },
+        { href: "/dashboard/formateur/students", label: "Suivi Apprenants", icon: BarChart3 },
+        { href: "/dashboard/instructor", label: "Instructor Space", icon: Briefcase },
+        { href: "/dashboard/courses", label: "Catalog", icon: BookOpen } // Teachers can view catalog
+      );
+    }
+
+    if (userRole === Role.ADMIN) {
+      baseItems.push(
+        { href: "/dashboard/admin/users", label: "Utilisateurs", icon: User },
+        { href: "/dashboard/admin/courses", label: "Cours", icon: GraduationCap },
+        { href: "/dashboard/admin", label: "Administration", icon: Shield }
+      );
+    }
+
+    baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User });
     return baseItems;
   };
 
@@ -102,7 +88,7 @@ export function DashboardSidebar({
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Button
               key={item.href}
@@ -122,7 +108,7 @@ export function DashboardSidebar({
         <Button
           variant="ghost"
           className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={onLogout}
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Log out

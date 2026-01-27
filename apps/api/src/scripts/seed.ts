@@ -49,8 +49,39 @@ async function bootstrap() {
   }
   console.log('Created 5 Instructors');
 
+  // Create specific test users
+  const student = await userModel.create({
+    email: 'student@lms.com',
+    password: hashedPassword,
+    firstName: 'Student',
+    lastName: 'User',
+    role: Role.STUDENT,
+  });
+  console.log('Created Student: student@lms.com');
+
+  const teacher = await userModel.create({
+    email: 'teacher@lms.com',
+    password: hashedPassword,
+    firstName: 'Teacher',
+    lastName: 'User',
+    role: Role.TEACHER,
+  });
+  console.log('Created Teacher: teacher@lms.com');
+
+  // Create users for deletion testing
+  for (let i = 1; i <= 3; i++) {
+    await userModel.create({
+      email: `delete-me-${i}@lms.com`,
+      password: hashedPassword,
+      firstName: `DeleteMe${i}`,
+      lastName: 'User',
+      role: Role.STUDENT,
+    });
+  }
+  console.log('Created 3 Users for deletion testing');
+
   // Create Students
-  for (let i = 0; i < 10; i++) {
+  for (let i = 0; i < 5; i++) {
     await userModel.create({
       email: faker.internet.email(),
       password: hashedPassword,
@@ -59,7 +90,7 @@ async function bootstrap() {
       role: Role.STUDENT,
     });
   }
-  console.log('Created 10 Students');
+  console.log('Created 5 Random Students');
 
   // Create Courses
   for (const instructor of instructors) {

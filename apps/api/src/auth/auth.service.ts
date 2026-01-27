@@ -13,9 +13,13 @@ import { User } from '../users/entities/user.entity';
 import { RegisterDto } from './dto/register.dto';
 import { LoginDto } from './dto/login.dto';
 import { UpdateProfileDto } from './dto/update-profile.dto';
+import { ChangePasswordDto } from './dto/change-password.dto';
 import { Role } from '../common/enums/role.enum';
 import { BCRYPT_ROUNDS } from '../common/constants';
 import { TokenBlacklistService } from './token-blacklist.service';
+import * as fs from 'fs';
+import * as path from 'path';
+import sharp from 'sharp';
 
 @Injectable()
 export class AuthService {
@@ -23,7 +27,7 @@ export class AuthService {
     @InjectModel(User.name) private userModel: Model<User>,
     private jwtService: JwtService,
     private tokenBlacklistService: TokenBlacklistService,
-  ) {}
+  ) { }
 
   async getTokens(userId: string, email: string, role: Role) {
     const [accessToken, refreshToken] = await Promise.all([
@@ -271,6 +275,84 @@ export class AuthService {
         firstName: updatedUser.firstName,
         lastName: updatedUser.lastName,
         role: updatedUser.role,
+      },
+    };
+  }
+
+  async changePassword(
+    userId: string,
+    changePasswordDto: ChangePasswordDto,
+  ): Promise<{ message: string }> {
+    const user = await this.userModel.findById(userId).select('+password');
+    if (!user) {
+      throw new UnauthorizedException('User not found.');
+    }
+
+    const isPasswordValid = await bcrypt.compare(
+      changePasswordDto.currentPassword,
+      user.password,
+    );
+
+    if (!isPasswordValid) {
+      throw new UnauthorizedException('Invalid current password.');
+    }
+
+    const hashedPassword = await bcrypt.hash(
+      changePasswordDto.newPassword,
+      BCRYPT_ROUNDS,
+    );
+
+    await this.userModel.findByIdAndUpdate(userId, {
+      password: hashedPassword,
+    });
+
+    return { message: 'Password changed successfully.' };
+  }
+
+  async uploadAvatar(
+    userId: string,
+    file: Express.Multer.File,
+  ): Promise<{ message: string; user: Partial<User> }> {
+    if (!file) {
+      throw new UnauthorizedException('No file uploaded');
+    }
+
+    const uploadDir = path.join(process.cwd(), 'uploads');
+    if (!fs.existsSync(uploadDir)) {
+      fs.mkdirSync(uploadDir, { recursive: true });
+    }
+
+    const filename = `${userId}-${Date.now()}.jpeg`;
+    const filePath = path.join(uploadDir, filename);
+
+    await sharp(file.buffer)
+      .resize(500, 500, {
+        fit: 'cover',
+        position: 'center',
+      })
+      .jpeg({ quality: 80 })
+      .toFile(filePath);
+
+    const profilePictureUrl = `/uploads/${filename}`;
+
+    const updatedUser = await this.userModel.findByIdAndUpdate(
+      userId,
+      { profilePicture: profilePictureUrl },
+      { new: true },
+    );
+
+    if (!updatedUser) {
+      throw new UnauthorizedException('User not found');
+    }
+
+    return {
+      message: 'Avatar uploaded successfully',
+      user: {
+        email: updatedUser.email,
+        firstName: updatedUser.firstName,
+        lastName: updatedUser.lastName,
+        role: updatedUser.role,
+        profilePicture: updatedUser.profilePicture,
       },
     };
   }

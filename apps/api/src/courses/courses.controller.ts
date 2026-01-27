@@ -24,7 +24,7 @@ import { type ObjectId } from '@src/common/types/objectid.type';
 @Controller('courses')
 @UseGuards(JwtAuthGuard, RolesGuard)
 export class CoursesController {
-  constructor(private readonly coursesService: CoursesService) {}
+  constructor(private readonly coursesService: CoursesService) { }
 
   @Post()
   @Roles(Role.TEACHER)
@@ -38,7 +38,7 @@ export class CoursesController {
   }
 
   @Get('published')
-  @Roles(Role.STUDENT)
+  @Roles(Role.STUDENT, Role.TEACHER, Role.ADMIN)
   findPublished() {
     return this.coursesService.findPublished();
   }
