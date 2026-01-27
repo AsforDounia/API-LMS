@@ -31,6 +31,11 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
             baseItems.push({ href: "/dashboard/admin/users", label: "Utilisateurs", icon: User });
         }
 
+        if (userRole === "admin") {
+            baseItems.push({ href: "/dashboard/admin/courses", label: "Cours", icon: GraduationCap });
+        }
+
+
         baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User });
         return baseItems;
     }
