@@ -2,6 +2,7 @@
 import { useEffect, useState } from "react";
 import api from "@/lib/api";
 import { showSuccess, showError } from "@/components/ui/toast";
+    import { useRouter } from "next/navigation";
 
 interface User {
     _id: string;
@@ -36,6 +37,26 @@ export default function AdminUsersPage() {
         };
         fetchUsers();
     }, []);
+
+    const router = useRouter();
+    useEffect(() => {
+        const checkRoleAndFetch = async () => {
+            try {
+                const profile = await api.get("/auth/profile");
+                if (profile.data.role !== "admin") {
+                    router.replace("/dashboard");
+                    return;
+                }
+                const res = await api.get("/users");
+                setUsers(res.data || []);
+            } catch (err) {
+                setError("Erreur lors du chargement des utilisateurs.");
+            } finally {
+                setLoading(false);
+            }
+        };
+        checkRoleAndFetch();
+    }, [router]);
 
     const handleDelete = async (id: string) => {
         if (!window.confirm("Supprimer cet utilisateur ?")) return;
