@@ -18,8 +18,4 @@ function Input({ className, type, ...props }: React.ComponentProps<"input">) {
   );
 }
 
-<<<<<<< HEAD
 export { Input }
-=======
-export { Input };
->>>>>>> bc978cf (refactor: Rename instructor to teacher, consolidate course pages, and update API models and UI components.)

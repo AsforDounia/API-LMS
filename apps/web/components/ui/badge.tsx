@@ -43,8 +43,4 @@ function Badge({
   );
 }
 
-<<<<<<< HEAD
 export { Badge, badgeVariants }
-=======
-export { Badge, badgeVariants };
->>>>>>> bc978cf (refactor: Rename instructor to teacher, consolidate course pages, and update API models and UI components.)

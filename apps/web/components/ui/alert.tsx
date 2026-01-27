@@ -63,8 +63,4 @@ function AlertDescription({
   );
 }
 
-<<<<<<< HEAD
 export { Alert, AlertTitle, AlertDescription }
-=======
-export { Alert, AlertTitle, AlertDescription };
->>>>>>> bc978cf (refactor: Rename instructor to teacher, consolidate course pages, and update API models and UI components.)
