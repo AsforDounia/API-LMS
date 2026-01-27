@@ -27,8 +27,12 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
             baseItems.push({ href: "/dashboard/instructor", label: "Instructor", icon: Briefcase })
         }
 
-        baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User })
-        return baseItems
+        if (userRole === "admin") {
+            baseItems.push({ href: "/dashboard/admin/users", label: "Utilisateurs", icon: User });
+        }
+
+        baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User });
+        return baseItems;
     }
 
     const navItems = getNavItems()

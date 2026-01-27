@@ -60,8 +60,8 @@ export class UsersService {
   }
 
   async findAll(): Promise<User[]> {
-    // Exclude soft-deleted users
-    return this.userModel.find({ deletedAt: { $exists: false } }).exec();
+    const users : User[] = await this.userModel.find({ $or:[{deletedAt: { $exists: false }},{deletedAt: null }]}).exec();
+    return users;
   }
 
   async findOne(id: ObjectId): Promise<User | null> {
