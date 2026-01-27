@@ -23,6 +23,7 @@ export class FormateurService {
     @InjectModel(Course.name) private readonly courseModel: Model<Course>,
     @InjectModel(QuizAttempt.name) private readonly quizAttemptModel: Model<QuizAttempt>,
     @InjectModel(ModuleProgress.name) private readonly moduleProgressModel: Model<ModuleProgress>,
+    @InjectModel('Module') private readonly moduleModel: Model<any>, // ✅ AJOUTÉ
   ) {}
 
   // ==========================================
@@ -90,9 +91,24 @@ export class FormateurService {
 
     if (!enrollment) throw new NotFoundException('Étudiant non inscrit à ce cours');
 
+    // ✅ CORRECTION: Récupérer d'abord les modules du cours
+    const courseModules = await this.moduleModel
+      .find({ course: courseId })
+      .select('_id')
+      .lean();
+
+    const moduleIds = courseModules.map(m => m._id);
+
     // Récupération de données en parallèle (Performance)
     const [moduleProgressData, quizAttempts] = await Promise.all([
-      this.moduleProgressModel.find({ student: studentId, course: courseId }).populate('module', 'title lessons').lean(),
+      // ✅ CORRECTION: Utiliser apprenantId et filtrer par moduleIds
+      this.moduleProgressModel
+        .find({ 
+          apprenantId: studentId,
+          moduleId: { $in: moduleIds }
+        })
+        .populate('moduleId', 'title')
+        .lean(),
       this.fetchQuizAttemptsForCourse(studentId, courseId),
     ]);
 
@@ -136,7 +152,7 @@ export class FormateurService {
     const course = await this.courseModel.findById(courseId).select('teacher').lean();
     if (!course) throw new NotFoundException('Cours introuvable');
     if (course.teacher.toString() !== teacherId) {
-      throw new ForbiddenException('Accès refusé : vous n’êtes pas le propriétaire de ce cours');
+      throw new ForbiddenException('Accès refusé : vous nêtes pas le propriétaire de ce cours');
     }
   }
 
@@ -153,16 +169,17 @@ export class FormateurService {
     return attempts.filter((a: any) => a.quizId?.moduleId?.courseId?.toString() === courseId);
   }
 
+  // ✅ CORRECTION: Utiliser moduleId au lieu de module
   private mapModuleProgress(data: any[]): ModuleProgressDto[] {
     return data.map((mp) => {
-      const total = mp.module?.lessons?.length || 0;
-      const completed = mp.completedLessons?.length || 0;
+      const module = mp.moduleId; // ✅ CORRIGÉ: moduleId au lieu de module
+      
       return {
-        moduleId: mp.module?._id.toString(),
-        moduleTitle: mp.module?.title,
-        completionPercentage: total > 0 ? Math.round((completed / total) * 100) : 0,
-        completedLessons: completed,
-        totalLessons: total,
+        moduleId: module?._id?.toString() || '',
+        moduleTitle: module?.title || 'Module sans titre',
+        completionPercentage: mp.progressPercentage || 0, // ✅ CORRIGÉ: utiliser progressPercentage
+        completedLessons: 0, // Ajustez selon votre logique
+        totalLessons: 0, // Ajustez selon votre logique
         lastAccessedAt: mp.updatedAt,
       };
     });

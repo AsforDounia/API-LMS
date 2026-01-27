@@ -83,6 +83,7 @@ export class FormateurController {
   ): Promise<{
     message: string;
     data: StudentProgressReportDto[];
+    
   }> {
     const reports = await this.formateurService.getCourseProgressReports(
       courseId,

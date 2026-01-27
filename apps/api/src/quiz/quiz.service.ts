@@ -25,10 +25,18 @@ export class QuizService {
     const question = new this.questionModel(createQuestionDto);
     return question.save();
   }
+ // Récupérer un quiz par son ID
+  async getQuizById(id: string): Promise<Quiz> {
+    const quiz = await this.quizModel
+      .findById(id);
+     
 
-    // async getQuizById(id: string): Promise<Quiz> {
-    //   return this.quizModel.findById(id).populate('moduleId').exec();
-    // }
+    if (!quiz) {
+      throw new NotFoundException(`Quiz avec l'ID ${id} introuvable`);
+    }
+
+    return quiz;
+  }
 
   async findAll(): Promise<Quiz[]> {
     // Exclude soft-deleted courses

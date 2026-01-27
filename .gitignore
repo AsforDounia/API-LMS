@@ -4,6 +4,7 @@
 /build
 /dist
 /apps/api/dist
+/apps/web/.next
 # Logs
 logs
 *.log

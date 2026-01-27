@@ -34,20 +34,22 @@ export class QuizController {
     findAll() {
       return this.quizService.findAll();
     }
-    // @Get(':id')
-    // async getQuizById(@Param('id') id: string) {
-    //   return this.quizService.getQuizById(id);
-    // }
 
-  @Get(':quizId/questions')
-  async getQuestionsByQuiz(@Param('quizId') quizId: string) {
-    return this.quizService.getQuestionsByQuiz(quizId);
-  }
 
-  @Get(':moduleId/quizzes')
-  async getQuizzesByModule(@Param('moduleId') moduleId: string) {
-    return this.quizService.getQuizzesByModule(moduleId);
-  }
+ @Get(':moduleId/quizzes')  // ← EN PREMIER
+async getQuizzesByModule(@Param('moduleId') moduleId: string) {
+  return this.quizService.getQuizzesByModule(moduleId);
+}
+
+@Get(':quizId/questions')  // ← EN DEUXIÈME
+async getQuestionsByQuiz(@Param('quizId') quizId: string) {
+  return this.quizService.getQuestionsByQuiz(quizId);
+}
+
+@Get(':id')  // ← EN DERNIER
+async getQuizById(@Param('id') id: string) {
+  return this.quizService.getQuizById(id);
+}
 
   @Patch(':id')
   async updateQuiz(@Param('id', ParseObjectIdPipe) id: ObjectId, @Body() updateQuizDto: Partial<CreateQuizDto>) {

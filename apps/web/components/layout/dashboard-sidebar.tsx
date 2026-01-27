@@ -2,7 +2,7 @@
 
 import Link from "next/link"
 import { usePathname } from "next/navigation"
-import { BookOpen, LayoutDashboard, GraduationCap, User, LogOut, Briefcase, ListChecks } from "lucide-react"
+import { BookOpen, LayoutDashboard, GraduationCap, User, LogOut, Briefcase, ListChecks,BarChart3 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -21,7 +21,9 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
         ]
 
         if (userRole === "teacher") {
-            baseItems.push({href: "/dashboard/quizzes", label: "Quizzes", icon: ListChecks })
+            baseItems.push({href: "/dashboard/quizzes", label: "Quizzes", icon: ListChecks },
+{ href: "/dashboard/formateur/students", label: "Suivi Apprenants", icon: BarChart3 }
+            )
         }
         if (userRole === "teacher" ) {
             baseItems.push({ href: "/dashboard/instructor", label: "Instructor", icon: Briefcase })
