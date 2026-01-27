@@ -1,6 +1,8 @@
 'use client';
 
 import { Course } from '@/lib/formateur-api';
+import { Calendar, Users, ArrowRight, BookOpen } from 'lucide-react';
+import { Card, CardContent, CardFooter } from '@/components/ui/card';
 
 interface CourseCardProps {
   course: Course;
@@ -9,46 +11,44 @@ interface CourseCardProps {
 
 export default function CourseCard({ course, onClick }: CourseCardProps) {
   return (
-    <div
+    <Card 
       onClick={onClick}
-      className="bg-white rounded-xl shadow-md hover:shadow-xl transition-all duration-300 cursor-pointer border border-gray-100 overflow-hidden group"
+      className="w-full shadow-lg hover:shadow-xl transition-all duration-300 cursor-pointer overflow-hidden group border-muted"
     >
-      <div className="p-6">
-        <div className="flex items-start justify-between mb-3">
-          <h3 className="text-xl font-bold text-gray-900 group-hover:text-blue-600 transition-colors line-clamp-2">
-            {course.title}
-          </h3>
-          <svg
-            className="w-5 h-5 text-gray-400 group-hover:text-blue-600 group-hover:translate-x-1 transition-all flex-shrink-0 ml-2"
-            fill="none"
-            stroke="currentColor"
-            viewBox="0 0 24 24"
-          >
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M9 5l7 7-7 7" />
-          </svg>
+      <CardContent className="p-6">
+        <div className="flex items-start justify-between mb-4">
+          <div className="p-3 rounded-full bg-primary/10 text-primary">
+            <BookOpen className="w-5 h-5" />
+          </div>
+          <ArrowRight className="w-5 h-5 text-muted-foreground group-hover:text-primary group-hover:translate-x-1 transition-all" />
         </div>
+
+        <h3 className="text-xl font-bold tracking-tight text-foreground group-hover:text-primary transition-colors mb-2 line-clamp-2">
+          {course.title}
+        </h3>
         
-        <p className="text-gray-600 text-sm mb-4 line-clamp-3">
+        <p className="text-sm text-muted-foreground line-clamp-3 mb-4">
           {course.description}
         </p>
 
-        <div className="flex items-center justify-between pt-4 border-t border-gray-100">
-          <div className="flex items-center text-xs text-gray-500">
-            <svg className="w-4 h-4 mr-1.5" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M8 7V3m8 4V3m-9 8h10M5 21h14a2 2 0 002-2V7a2 2 0 00-2-2H5a2 2 0 00-2 2v12a2 2 0 002 2z" />
-            </svg>
+        <div className="flex items-center gap-4 pt-4 border-t">
+          <div className="flex items-center text-xs text-muted-foreground">
+            <Calendar className="w-4 h-4 mr-1.5" />
             {new Date(course.createdAt).toLocaleDateString('fr-FR', {
               day: 'numeric',
-              month: 'long',
+              month: 'short',
               year: 'numeric'
             })}
           </div>
-          
-          <span className="text-blue-600 hover:text-blue-700 font-medium text-sm group-hover:underline">
-            Voir les étudiants
-          </span>
         </div>
-      </div>
-    </div>
+      </CardContent>
+
+      <CardFooter className="px-6 pb-6 pt-0">
+        <div className="flex items-center text-sm font-medium text-primary group-hover:underline">
+          <Users className="w-4 h-4 mr-2" />
+          Voir les étudiants
+        </div>
+      </CardFooter>
+    </Card>
   );
 }

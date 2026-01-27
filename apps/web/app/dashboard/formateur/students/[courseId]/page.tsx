@@ -3,9 +3,21 @@
 import { useEffect, useState } from 'react';
 import { useRouter, useParams } from 'next/navigation';
 import { StudentProgressReport, formateurApi } from '@/lib/formateur-api';
+import { 
+  ArrowLeft, 
+  Users, 
+  UserCheck,
+  TrendingUp,
+  Calendar,
+  ArrowRight,
+  Loader2,
+  AlertCircle,
+  BookOpen
+} from 'lucide-react';
+
+import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Button } from '@/components/ui/button';
 import ProgressBar from '@/components/formateur/ProgressBar';
-import LoadingSpinner from '@/components/formateur/LoadingSpinner';
-import ErrorMessage from '@/components/formateur/ErrorMessage';
 
 export default function CourseStudentsPage() {
   const router = useRouter();
@@ -25,7 +37,7 @@ export default function CourseStudentsPage() {
     setError(null);
 
     try {
-      const data = await formateurApi.getCourseProgress (courseId);
+      const data = await formateurApi.getCourseProgress(courseId);
       setReports(data);
     } catch (err: any) {
       setError(err.response?.data?.message || 'Erreur lors du chargement');
@@ -38,141 +50,182 @@ export default function CourseStudentsPage() {
     fetchProgress();
   }, [token, courseId]);
 
-  if (loading) return <LoadingSpinner />;
+  if (loading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen bg-muted/40">
+        <div className="text-center">
+          <Loader2 className="w-12 h-12 animate-spin text-primary mx-auto mb-4" />
+          <p className="text-muted-foreground">Chargement des étudiants...</p>
+        </div>
+      </div>
+    );
+  }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/40">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
         {/* Back Button */}
-        <button
+        <Button
+          variant="ghost"
           onClick={() => router.back()}
-          className="mb-6 flex items-center text-blue-600 hover:text-blue-700 font-medium transition-colors"
+          className="mb-6"
         >
-          <svg className="w-5 h-5 mr-2" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M15 19l-7-7 7-7" />
-          </svg>
+          <ArrowLeft className="w-4 h-4 mr-2" />
           Retour aux cours
-        </button>
+        </Button>
 
-        {/* Header */}
-        <div className="bg-white rounded-xl shadow-sm p-6 mb-6 border border-gray-200">
-          <h1 className="text-3xl font-bold text-gray-900 mb-2">
-            {reports[0]?.courseTitle || 'Cours'}
-          </h1>
-          <div className="flex items-center gap-6 text-sm text-gray-600">
-            <div className="flex items-center">
-              <svg className="w-5 h-5 mr-2 text-blue-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M12 4.354a4 4 0 110 5.292M15 21H3v-1a6 6 0 0112 0v1zm0 0h6v-1a6 6 0 00-9-5.197M13 7a4 4 0 11-8 0 4 4 0 018 0z" />
-              </svg>
-              <span className="font-semibold">{reports.length}</span>
-              <span className="ml-1">étudiant{reports.length > 1 ? 's' : ''} inscrit{reports.length > 1 ? 's' : ''}</span>
+        {/* Header Card */}
+        <Card className="shadow-lg mb-6">
+          <CardContent className="p-6">
+            <div className="flex items-center gap-3 mb-4">
+              <div className="p-3 rounded-full bg-primary/10">
+                <BookOpen className="w-6 h-6 text-primary" />
+              </div>
+              <div>
+                <h1 className="text-3xl font-bold tracking-tight">
+                  {reports[0]?.courseTitle || 'Cours'}
+                </h1>
+              </div>
             </div>
-          </div>
-        </div>
+            <div className="flex items-center gap-2 text-sm text-muted-foreground">
+              <Users className="w-5 h-5 text-primary" />
+              <span className="font-semibold text-foreground">{reports.length}</span>
+              <span>étudiant{reports.length > 1 ? 's' : ''} inscrit{reports.length > 1 ? 's' : ''}</span>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* Error */}
+        {/* Error State */}
         {error && (
-          <div className="mb-6">
-            <ErrorMessage message={error} onRetry={fetchProgress} />
-          </div>
+          <Card className="shadow-lg mb-6 border-destructive">
+            <CardContent className="p-8 text-center">
+              <AlertCircle className="w-12 h-12 text-destructive mx-auto mb-4" />
+              <h3 className="text-lg font-semibold mb-2">{error}</h3>
+              <Button onClick={fetchProgress} className="mt-4">
+                Réessayer
+              </Button>
+            </CardContent>
+          </Card>
         )}
 
         {/* Empty State */}
         {!error && reports.length === 0 && (
-          <div className="bg-white rounded-xl shadow-sm p-12 text-center border border-gray-200">
-            <svg className="w-20 h-20 text-gray-300 mx-auto mb-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-              <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={1.5} d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z" />
-            </svg>
-            <h3 className="text-xl font-semibold text-gray-700 mb-2">
-              Aucun étudiant inscrit
-            </h3>
-            <p className="text-gray-500">
-              Aucun étudiant ne s'est encore inscrit à ce cours
-            </p>
-          </div>
+          <Card className="shadow-lg">
+            <CardContent className="p-12 text-center">
+              <div className="p-4 rounded-full bg-muted inline-flex mb-4">
+                <Users className="w-12 h-12 text-muted-foreground" />
+              </div>
+              <h3 className="text-xl font-semibold mb-2">
+                Aucun étudiant inscrit
+              </h3>
+              <p className="text-muted-foreground">
+                Aucun étudiant ne s'est encore inscrit à ce cours
+              </p>
+            </CardContent>
+          </Card>
         )}
 
         {/* Students Table */}
         {!error && reports.length > 0 && (
-          <div className="bg-white rounded-xl shadow-sm overflow-hidden border border-gray-200">
-            <div className="overflow-x-auto">
-              <table className="min-w-full divide-y divide-gray-200">
-                <thead className="bg-gray-50">
-                  <tr>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Étudiant
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Progression
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Quiz
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Score moyen
-                    </th>
-                    <th className="px-6 py-4 text-left text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Dernière activité
-                    </th>
-                    <th className="px-6 py-4 text-right text-xs font-semibold text-gray-600 uppercase tracking-wider">
-                      Action
-                    </th>
-                  </tr>
-                </thead>
-                <tbody className="bg-white divide-y divide-gray-200">
-                  {reports.map((report) => (
-                    <tr key={report.studentId} className="hover:bg-gray-50 transition-colors">
-                      <td className="px-6 py-4">
-                        <div>
-                          <div className="text-sm font-semibold text-gray-900">
-                            {report.studentName}
-                          </div>
-                          <div className="text-sm text-gray-500">
-                            {report.studentEmail}
-                          </div>
-                        </div>
-                      </td>
-                      <td className="px-6 py-4">
-                        <div className="max-w-xs">
-                          <ProgressBar percentage={report.overallProgress} />
-                        </div>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="text-sm font-medium text-gray-900">
-                          {report.totalQuizzesPassed}
-                        </span>
-                        <span className="text-sm text-gray-500">
-                          /{report.totalQuizzesTaken}
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap">
-                        <span className="inline-flex items-center px-3 py-1 rounded-full text-sm font-medium bg-blue-100 text-blue-800">
-                          {report.averageQuizScore}%
-                        </span>
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-600">
-                        {report.lastActivityAt
-                          ? new Date(report.lastActivityAt).toLocaleDateString('fr-FR')
-                          : 'Aucune'}
-                      </td>
-                      <td className="px-6 py-4 whitespace-nowrap text-right">
-                        <button
-                          onClick={() =>
-                            router.push(
-                              `/dashboard/formateur/students/${courseId}/${report.studentId}`
-                            )
-                          }
-                          className="text-blue-600 hover:text-blue-700 font-medium text-sm hover:underline"
-                        >
-                          Voir détails →
-                        </button>
-                      </td>
+          <Card className="shadow-lg">
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <div className="p-2 rounded-full bg-primary/10">
+                  <UserCheck className="w-5 h-5 text-primary" />
+                </div>
+                Liste des Étudiants
+              </CardTitle>
+            </CardHeader>
+            <CardContent className="p-0">
+              <div className="overflow-x-auto">
+                <table className="w-full">
+                  <thead>
+                    <tr className="border-b bg-muted/50">
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Étudiant
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Progression
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Quiz
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Score moyen
+                      </th>
+                      <th className="px-6 py-4 text-left text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Dernière activité
+                      </th>
+                      <th className="px-6 py-4 text-right text-xs font-semibold text-muted-foreground uppercase tracking-wider">
+                        Action
+                      </th>
                     </tr>
-                  ))}
-                </tbody>
-              </table>
-            </div>
-          </div>
+                  </thead>
+                  <tbody className="divide-y">
+                    {reports.map((report) => (
+                      <tr 
+                        key={report.studentId} 
+                        className="hover:bg-muted/50 transition-colors group"
+                      >
+                        <td className="px-6 py-4">
+                          <div>
+                            <div className="text-sm font-semibold">
+                              {report.studentName}
+                            </div>
+                            <div className="text-sm text-muted-foreground">
+                              {report.studentEmail}
+                            </div>
+                          </div>
+                        </td>
+                        <td className="px-6 py-4">
+                          <div className="max-w-xs">
+                            <ProgressBar percentage={report.overallProgress} />
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="text-sm font-medium">
+                            {report.totalQuizzesPassed}
+                          </span>
+                          <span className="text-sm text-muted-foreground">
+                            /{report.totalQuizzesTaken}
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <span className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm font-semibold bg-primary/10 text-primary">
+                            <TrendingUp className="w-3 h-3" />
+                            {report.averageQuizScore}%
+                          </span>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap">
+                          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                            <Calendar className="w-4 h-4" />
+                            {report.lastActivityAt
+                              ? new Date(report.lastActivityAt).toLocaleDateString('fr-FR')
+                              : 'Aucune'}
+                          </div>
+                        </td>
+                        <td className="px-6 py-4 whitespace-nowrap text-right">
+                          <Button
+                            variant="ghost"
+                            size="sm"
+                            onClick={() =>
+                              router.push(
+                                `/dashboard/formateur/students/${courseId}/${report.studentId}`
+                              )
+                            }
+                            className="group-hover:bg-primary/10 group-hover:text-primary"
+                          >
+                            Voir détails
+                            <ArrowRight className="w-4 h-4 ml-2" />
+                          </Button>
+                        </td>
+                      </tr>
+                    ))}
+                  </tbody>
+                </table>
+              </div>
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

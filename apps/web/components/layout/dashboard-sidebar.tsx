@@ -22,7 +22,7 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
 
         if (userRole === "teacher") {
             baseItems.push({href: "/dashboard/quizzes", label: "Quizzes", icon: ListChecks },
-{ href: "/dashboard/formateur/suivi", label: "Suivi Apprenants", icon: BarChart3 }
+{ href: "/dashboard/formateur/students", label: "Suivi Apprenants", icon: BarChart3 }
             )
         }
         if (userRole === "teacher" || userRole === "admin") {

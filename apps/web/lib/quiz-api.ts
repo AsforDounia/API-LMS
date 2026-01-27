@@ -113,7 +113,7 @@ export const answerApi = {
   },
 
   // Submit all answers at once
-  submitQuiz: async (data: SubmitQuizDto) => {
+  submitQuiz: async (data) => {
     const response = await api.post("/answers/submit", data)
     return response.data
   },
