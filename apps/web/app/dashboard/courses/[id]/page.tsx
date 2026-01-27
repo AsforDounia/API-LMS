@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
 import { Loader2, ArrowLeft, User, Calendar, BookOpen } from "lucide-react"
+import api from "@/lib/api";
 import Link from "next/link"
 
 export default function CourseDetailPage() {
@@ -15,6 +16,8 @@ export default function CourseDetailPage() {
     const [course, setCourse] = useState<Course | null>(null)
     const [isLoading, setIsLoading] = useState(true)
     const [error, setError] = useState<string | null>(null)
+    const [userRole, setUserRole] = useState<string | null>(null);
+
 
     useEffect(() => {
         const fetchCourse = async () => {
@@ -36,7 +39,22 @@ export default function CourseDetailPage() {
         }
 
         fetchCourse()
+
     }, [params.id])
+
+    useEffect(() => {
+    const fetchUser = async () => {
+        try {
+            const res = await api.get("/auth/profile");
+            console.log("Profil utilisateur :", res.data);
+            setUserRole(res.data.role);
+        } catch (err) {
+            console.error("Erreur profil :", err);
+            setUserRole(null);
+        }
+    };
+    fetchUser();
+}, []);
 
     if (isLoading) {
         return (
@@ -111,13 +129,21 @@ export default function CourseDetailPage() {
                             <span>Created: {new Date(course.createdAt).toLocaleDateString()}</span>
                         </div>
                     </div>
-
                     <div className="pt-4 border-t">
-                      <Button size="lg" asChild>
-                            <Link href={`/dashboard/apprenant/courses/${params.id}/modules`}>
-                                Start Learning
-                            </Link>
-                        </Button>
+                        {userRole === "student" && (
+                            <Button size="lg" asChild>
+                                <Link href={`/dashboard/apprenant/courses/${params.id}/modules`}>
+                                    Start Learning
+                                </Link>
+                            </Button>
+                        )}
+                        {userRole === "teacher" && (
+                            <Button size="lg" asChild>
+                                <Link href={`/dashboard/formateur/courses/${params.id}/modules`}>
+                                    Gérer les modules
+                                </Link>
+                            </Button>
+                        )}
                     </div>
                 </CardContent>
             </Card>
