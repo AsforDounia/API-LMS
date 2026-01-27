@@ -17,7 +17,7 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
     const getNavItems = () => {
         const baseItems = [
             { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-            { href: "/dashboard/courses", label: "Courses", icon: GraduationCap },
+
         ]
 
         if (userRole === "teacher") {
@@ -25,12 +25,24 @@ export function DashboardSidebar({ userRole, onLogout }: DashboardSidebarProps) 
 { href: "/dashboard/formateur/students", label: "Suivi Apprenants", icon: BarChart3 }
             )
         }
-        if (userRole === "teacher" || userRole === "admin") {
+        if (userRole === "teacher" ) {
             baseItems.push({ href: "/dashboard/instructor", label: "Instructor", icon: Briefcase })
         }
 
-        baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User })
-        return baseItems
+        if( userRole === "teacher" || userRole === "student") {
+            baseItems.push({ href: "/dashboard/courses", label: "Courses", icon: GraduationCap })
+        }
+        if (userRole === "admin") {
+            baseItems.push({ href: "/dashboard/admin/users", label: "Utilisateurs", icon: User });
+        }
+
+        if (userRole === "admin") {
+            baseItems.push({ href: "/dashboard/admin/courses", label: "Cours", icon: GraduationCap });
+        }
+
+
+        baseItems.push({ href: "/dashboard/profile", label: "Profile", icon: User });
+        return baseItems;
     }
 
     const navItems = getNavItems()

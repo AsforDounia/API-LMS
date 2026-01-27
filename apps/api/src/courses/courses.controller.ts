@@ -59,7 +59,7 @@ export class CoursesController {
   }
 
   @Delete(':id')
-  @Roles(Role.TEACHER,  )
+  @Roles(Role.TEACHER,Role.ADMIN)
   remove(
     @Param('id', ParseObjectIdPipe) id: ObjectId,
     @CurrentUser() user: User
