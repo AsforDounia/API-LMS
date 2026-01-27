@@ -4,6 +4,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useForm } from "react-hook-form";
 import { useState } from "react";
 import { useRouter } from "next/navigation";
+import Cookies from "js-cookie";
 import { AxiosError } from "axios";
 import { Mail, Lock, Loader2, ArrowRight, LogIn } from "lucide-react";
 
@@ -56,6 +57,7 @@ export default function LoginPage() {
         if (response.data.accessToken) {
           localStorage.setItem("token", response.data.accessToken);
           localStorage.setItem("refreshToken", response.data.refreshToken);
+          Cookies.set("token", response.data.accessToken);
           router.push("/dashboard");
         }
       }

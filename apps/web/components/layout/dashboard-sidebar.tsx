@@ -1,7 +1,7 @@
 "use client";
 
 import Link from "next/link";
-import { usePathname } from "next/navigation";
+import { usePathname, useRouter } from "next/navigation";
 import {
   BookOpen,
   LayoutDashboard,
@@ -9,33 +9,64 @@ import {
   User,
   LogOut,
   Briefcase,
+  Shield,
+  FileText
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
+import { Role } from "@/lib/types";
+import api from "@/lib/api";
+import Cookies from "js-cookie";
 
 interface DashboardSidebarProps {
   userRole: string;
-  onLogout: () => void;
 }
 
 export function DashboardSidebar({
   userRole,
-  onLogout,
 }: DashboardSidebarProps) {
   const pathname = usePathname();
+  const router = useRouter();
+
+  const handleLogout = async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch (error) {
+      console.error("Logout error:", error);
+    } finally {
+      localStorage.removeItem("token");
+      localStorage.removeItem("refreshToken");
+      Cookies.remove("token");
+      router.push("/auth/login");
+    }
+  };
 
   const getNavItems = () => {
     const baseItems = [
-      { href: "/dashboard", label: "Dashboard", icon: LayoutDashboard },
-      { href: "/dashboard/courses", label: "Courses", icon: GraduationCap },
+      { href: "/dashboard", label: "Overview", icon: LayoutDashboard },
     ];
 
-    if (userRole === "teacher" || userRole === "admin") {
+    if (userRole === Role.STUDENT) {
+      baseItems.push({ href: "/dashboard/courses", label: "My Learning", icon: GraduationCap });
+      // Add more student specific links here
+    }
+
+    if (userRole === Role.TEACHER || userRole === Role.ADMIN) {
       baseItems.push({
         href: "/dashboard/teacher",
-        label: "Teacher",
+        label: "Instructor Space",
         icon: Briefcase,
       });
+      // Teachers also likely want to see the course catalog, so maybe keep courses?
+      baseItems.push({ href: "/dashboard/courses", label: "Catalog", icon: BookOpen });
+    }
+
+    if (userRole === Role.ADMIN) {
+      baseItems.push({
+        href: "/dashboard/admin",
+        label: "Administration",
+        icon: Shield,
+      })
     }
 
     baseItems.push({
@@ -62,7 +93,7 @@ export function DashboardSidebar({
       <nav className="flex-1 space-y-1 p-4">
         {navItems.map((item) => {
           const Icon = item.icon;
-          const isActive = pathname === item.href;
+          const isActive = pathname === item.href || pathname.startsWith(item.href + "/");
           return (
             <Button
               key={item.href}
@@ -82,7 +113,7 @@ export function DashboardSidebar({
         <Button
           variant="ghost"
           className="w-full justify-start text-muted-foreground hover:text-destructive"
-          onClick={onLogout}
+          onClick={handleLogout}
         >
           <LogOut className="mr-2 h-4 w-4" />
           Log out
