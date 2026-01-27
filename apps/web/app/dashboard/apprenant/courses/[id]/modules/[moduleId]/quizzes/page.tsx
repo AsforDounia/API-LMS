@@ -1,19 +1,21 @@
+import { redirect } from 'next/navigation';
 import QuizList from '@/components/quiz/QuizList';
 import { FileText, BookOpen } from 'lucide-react';
 
 interface PageProps {
   params: Promise<{
+    id: string;        // ← Votre route utilise [id], pas [courseId]
     moduleId: string;
   }>;
 }
 
 export default async function QuizzesPage({ params }: PageProps) {
-  const { moduleId } = await params; 
+  const { id: courseId, moduleId } = await params;
 
   return (
     <div className="min-h-screen bg-gray-50">
       <div className="container mx-auto px-4 py-8 max-w-7xl">
-        {/* En-tête */}
+        {/* Header */}
         <header className="mb-8">
           <div className="flex items-center gap-3 mb-3">
             <div className="bg-blue-100 p-2 rounded-lg">
@@ -42,8 +44,11 @@ export default async function QuizzesPage({ params }: PageProps) {
           </div>
         </header>
 
-        {/* Liste des quiz */}
-        <QuizList moduleId={moduleId} />
+        {/* Quiz List */}
+        <QuizList
+          moduleId={moduleId}
+          courseId={courseId}
+        />
       </div>
     </div>
   );
