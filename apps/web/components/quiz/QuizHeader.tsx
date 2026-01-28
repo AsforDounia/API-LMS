@@ -1,55 +1,86 @@
-'use client'
+'use client';
 
-import { Quiz } from '@/types/quiz.types'
-import { Clock, Info } from 'lucide-react'
+import { Quiz, QuizAttempt } from '@/lib/quiz-api';
+import { Clock, Target, Hash } from 'lucide-react';
+import { useEffect, useState } from 'react';
 
 interface QuizHeaderProps {
-  quiz: Quiz
+  quiz: Quiz;
+  attempt: QuizAttempt;
+  currentQuestionIndex: number;
+  totalQuestions: number;
+  answeredCount: number;
 }
 
-export default function QuizHeader({ quiz }: QuizHeaderProps) {
+export default function QuizHeader({ 
+  quiz, 
+  attempt, 
+  currentQuestionIndex, 
+  totalQuestions,
+  answeredCount 
+}: QuizHeaderProps) {
+  const [elapsedTime, setElapsedTime] = useState('00:00');
+
+  useEffect(() => {
+    const startTime = new Date(attempt.startedAt).getTime();
+    
+    const interval = setInterval(() => {
+      const now = Date.now();
+      const diff = now - startTime;
+      
+      const minutes = Math.floor(diff / 60000);
+      const seconds = Math.floor((diff % 60000) / 1000);
+      
+      setElapsedTime(`${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')}`);
+    }, 1000);
+
+    return () => clearInterval(interval);
+  }, [attempt.startedAt]);
+
+  const progress = (answeredCount / totalQuestions) * 100;
+
   return (
-    <div className="bg-gradient-to-r from-blue-600 to-blue-700 rounded-lg shadow-lg p-8 text-white">
-      <h1 className="text-3xl font-bold mb-2">{quiz.title}</h1>
-
-      {quiz.description && (
-        <p className="text-blue-100 text-lg mb-6">{quiz.description}</p>
-      )}
-
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 mt-6">
-        <div className="bg-blue-500 bg-opacity-50 rounded-lg p-4">
-          <div className="text-blue-100 text-sm">Note de passage</div>
-          <div className="text-2xl font-bold">{quiz.passingScore}%</div>
-        </div>
-
-        {quiz.duration && (
-          <div className="bg-blue-500 bg-opacity-50 rounded-lg p-4">
-            <div className="flex items-center gap-2">
-              <Clock className="w-4 h-4 text-blue-100" />
-              <div className="text-blue-100 text-sm">Durée</div>
+    <div className="bg-white border-b sticky top-0 z-10 shadow-sm">
+      <div className="container mx-auto px-4 py-4">
+        {/* Title and Info */}
+        <div className="flex items-center justify-between mb-4">
+          <div>
+            <h1 className="text-2xl font-bold text-gray-900">{quiz.title}</h1>
+            <div className="flex items-center gap-4 mt-2 text-sm text-gray-600">
+              <div className="flex items-center gap-1">
+                <Target className="w-4 h-4" />
+                <span>Score minimum: <strong>{quiz.passingScore}%</strong></span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Hash className="w-4 h-4" />
+                <span>Tentative: <strong>#{attempt.attemptNumber}</strong></span>
+              </div>
+              <div className="flex items-center gap-1">
+                <Clock className="w-4 h-4" />
+                <span className="font-mono font-semibold">{elapsedTime}</span>
+              </div>
             </div>
-            <div className="text-2xl font-bold">{quiz.duration} min</div>
           </div>
-        )}
 
-        <div className="bg-blue-500 bg-opacity-50 rounded-lg p-4">
-          <div className="text-blue-100 text-sm">Requis</div>
-          <div className="text-2xl font-bold">
-            {quiz.isRequired ? '✓' : 'Non'}
+          {/* Progress Stats */}
+          <div className="text-right">
+            <div className="text-sm text-gray-600 mb-1">
+              Questions répondues
+            </div>
+            <div className="text-2xl font-bold text-blue-600">
+              {answeredCount} / {totalQuestions}
+            </div>
           </div>
         </div>
-      </div>
 
-      <div className="bg-blue-500 bg-opacity-30 border-l-4 border-blue-200 rounded p-4 mt-6 flex gap-3">
-        <Info className="w-5 h-5 flex-shrink-0 text-blue-200 mt-0.5" />
-        <div className="text-sm">
-          <p className="font-semibold">Instructions du quiz</p>
-          <p className="text-blue-100 mt-1">
-            Répondez à toutes les questions. Vous pouvez naviguer entre les
-            questions avant de soumettre.
-          </p>
+        {/* Progress Bar */}
+        <div className="relative h-2 bg-gray-200 rounded-full overflow-hidden">
+          <div 
+            className="absolute h-full bg-gradient-to-r from-blue-500 to-blue-600 transition-all duration-300"
+            style={{ width: `${progress}%` }}
+          />
         </div>
       </div>
     </div>
-  )
+  );
 }

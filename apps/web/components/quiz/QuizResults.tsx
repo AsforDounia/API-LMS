@@ -1,183 +1,233 @@
-'use client'
+'use client';
 
-import { QuizResult, Question } from '@/types/quiz.types'
-import { CheckCircle, XCircle, Clock } from 'lucide-react'
-import Link from 'next/link'
+import { useEffect, useState } from 'react';
+import { useRouter } from 'next/navigation';
+import { quizApi, Quiz, QuizAttempt, Answer, Question } from '@/lib/quiz-api';
+import { CheckCircle2, XCircle, Trophy, TrendingUp, Clock, RotateCcw, Home } from 'lucide-react';
 
 interface QuizResultsProps {
-    result: QuizResult
-    quiz: { title: string }
-    questions: Question[]
+  quizId: string;
+  attemptId: string;
+  moduleId: string;
+  courseId: string;
 }
 
-export default function QuizResults({
-    result,
-    quiz,
-    questions,
-}: QuizResultsProps) {
-    const isPassed = result.passed
-    const scorePercentage = Math.round(result.percentage)
+export default function QuizResults({ quizId, attemptId, moduleId, courseId }: QuizResultsProps) {
+  const router = useRouter();
+  const [quiz, setQuiz] = useState<Quiz | null>(null);
+  const [attempt, setAttempt] = useState<QuizAttempt | null>(null);
+  const [answers, setAnswers] = useState<Answer[]>([]);
+  const [questions, setQuestions] = useState<Question[]>([]);
+  const [loading, setLoading] = useState(true);
 
-    const getScoreColor = () => {
-        if (scorePercentage >= 80) return 'text-green-600'
-        if (scorePercentage >= 60) return 'text-yellow-600'
-        return 'text-red-600'
+  useEffect(() => {
+    loadResults();
+  }, [quizId, attemptId]);
+
+  const loadResults = async () => {
+    try {
+      const [quizData, attemptData, answersData, questionsData] = await Promise.all([
+        quizApi.getQuizById(quizId),
+        quizApi.getAttemptById(attemptId),
+        quizApi.getAnswersByAttempt(attemptId),
+        quizApi.getQuestionsByQuiz(quizId),
+      ]);
+
+      setQuiz(quizData);
+      setAttempt(attemptData);
+      setAnswers(answersData);
+      setQuestions(questionsData);
+    } catch (err) {
+      console.error('Error loading results:', err);
+    } finally {
+      setLoading(false);
     }
+  };
 
-    const getScoreBg = () => {
-        if (scorePercentage >= 80) return 'bg-green-50'
-        if (scorePercentage >= 60) return 'bg-yellow-50'
-        return 'bg-red-50'
-    }
+  const handleRetry = () => {
+    router.push(`/dashboard/apprenant/courses/${courseId}/modules/${moduleId}/quizzes/${quizId}`);
+  };
 
+  const handleBackToModule = () => {
+    router.push(`/dashboard/apprenant/courses/${courseId}/modules/${moduleId}`);
+  };
+
+  if (loading || !quiz || !attempt) {
     return (
-        <div className="max-w-4xl mx-auto space-y-8">
-            {/* Header */}
-            <div
-                className={`rounded-lg shadow-lg p-8 text-center ${isPassed
-                    ? 'bg-gradient-to-r from-green-500 to-green-600 text-white'
-                    : 'bg-gradient-to-r from-red-500 to-red-600 text-white'
-                    }`}
-            >
-                <div className="flex justify-center mb-4">
-                    {isPassed ? (
-                        <CheckCircle className="w-20 h-20" />
-                    ) : (
-                        <XCircle className="w-20 h-20" />
-                    )}
-                </div>
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="animate-spin rounded-full h-12 w-12 border-b-2 border-blue-600"></div>
+      </div>
+    );
+  }
 
-                <h1 className="text-3xl font-bold mb-2">
-                    {isPassed ? 'Bravo! Quiz réussi!' : 'Quiz non réussi'}
-                </h1>
-                <p className="text-lg opacity-90">{quiz.title}</p>
+  const totalPoints = questions.reduce((sum, q) => sum + q.points, 0);
+  const percentage = totalPoints > 0 ? Math.round((attempt.score / totalPoints) * 100) : 0;
+  const passed = attempt.passed;
+
+  const correctCount = answers.filter(a => a.isCorrect).length;
+  const incorrectCount = answers.length - correctCount;
+
+  return (
+    <div className="min-h-screen bg-gray-50 pb-12">
+      {/* Hero Section */}
+      <div className={`
+        ${passed ? 'bg-gradient-to-br from-green-500 to-green-600' : 'bg-gradient-to-br from-orange-500 to-orange-600'}
+        text-white py-12
+      `}>
+        <div className="container mx-auto px-4 max-w-4xl text-center">
+          {passed ? (
+            <Trophy className="w-20 h-20 mx-auto mb-4" />
+          ) : (
+            <TrendingUp className="w-20 h-20 mx-auto mb-4" />
+          )}
+          
+          <h1 className="text-4xl font-bold mb-2">
+            {passed ? 'Félicitations ! 🎉' : 'Bon effort ! 💪'}
+          </h1>
+          
+          <p className="text-xl opacity-90 mb-6">
+            {passed 
+              ? 'Vous avez réussi le quiz !' 
+              : 'Continuez à apprendre, vous y êtes presque !'}
+          </p>
+
+          {/* Score Display */}
+          <div className="bg-white bg-opacity-20 backdrop-blur-sm rounded-2xl p-8 inline-block">
+            <div className="text-6xl font-bold mb-2">
+              {percentage}%
             </div>
-
-            {/* Score */}
-            <div className={`rounded-lg shadow-md p-8 ${getScoreBg()}`}>
-                <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-                    <div className="text-center">
-                        <p className="text-gray-600 text-sm font-semibold mb-2">Score</p>
-                        <p className={`text-4xl font-bold ${getScoreColor()}`}>
-                            {scorePercentage}%
-                        </p>
-                    </div>
-
-                    <div className="text-center">
-                        <p className="text-gray-600 text-sm font-semibold mb-2">Points</p>
-                        <p className={`text-4xl font-bold ${getScoreColor()}`}>
-                            {result.score} / {result.totalPoints}
-                        </p>
-                    </div>
-
-                    <div className="text-center">
-                        <p className="text-gray-600 text-sm font-semibold mb-2">
-                            Note de passage
-                        </p>
-                        <p className="text-2xl font-bold text-gray-700">60%</p>
-                    </div>
-                </div>
+            <div className="text-lg opacity-90">
+              {attempt.score} / {totalPoints} points
             </div>
-
-            {/* Answers Review */}
-            <div className="bg-white rounded-lg shadow-md overflow-hidden">
-                <div className="bg-gray-100 px-6 py-4 border-b">
-                    <h2 className="text-xl font-bold text-gray-900">
-                        Révision des réponses
-                    </h2>
-                </div>
-
-                <div className="divide-y">
-                    {result.answers.map((answer: any, index: number) => {
-                        const question = questions.find((q) => q._id === answer.questionId)
-                        if (!question) return null
-
-                        return (
-                            <div key={answer._id} className="p-6 hover:bg-gray-50">
-                                <div className="flex items-start gap-4">
-                                    <div className="flex-shrink-0">
-                                        {answer.isCorrect ? (
-                                            <CheckCircle className="w-6 h-6 text-green-500" />
-                                        ) : (
-                                            <XCircle className="w-6 h-6 text-red-500" />
-                                        )}
-                                    </div>
-
-                                    <div className="flex-1">
-                                        <h3 className="font-semibold text-gray-900 mb-2">
-                                            Question {index + 1}: {question.text}
-                                        </h3>
-
-                                        <div className="space-y-2">
-                                            {question.options && (
-                                                <div>
-                                                    <p className="text-sm font-medium text-gray-700 mb-1">
-                                                        Votre réponse:
-                                                    </p>
-                                                    <div className="flex gap-2 flex-wrap">
-                                                        {question.options
-                                                            .filter((opt: any) =>
-                                                                answer.selectedAnswers.includes(opt.id)
-                                                            )
-                                                            .map((opt: any) => (
-                                                                <span
-                                                                    key={opt.id}
-                                                                    className="bg-blue-100 text-blue-700 px-3 py-1 rounded-full text-sm"
-                                                                >
-                                                                    {opt.text}
-                                                                </span>
-                                                            ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <p className="text-sm">
-                                                <span
-                                                    className={`font-semibold ${answer.isCorrect
-                                                        ? 'text-green-600'
-                                                        : 'text-red-600'
-                                                        }`}
-                                                >
-                                                    {answer.isCorrect
-                                                        ? '✓ Correct'
-                                                        : '✗ Incorrect'}
-                                                </span>
-                                                <span className="text-gray-600 ml-2">
-                                                    {question.points} points
-                                                </span>
-                                            </p>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-                        )
-                    })}
-                </div>
-            </div>
-
-            {/* Footer */}
-            <div className="bg-gray-50 rounded-lg shadow-md p-6 text-center space-y-4">
-                <div className="flex items-center justify-center gap-2 text-gray-600">
-                    <Clock className="w-5 h-5" />
-                    <span className="text-sm">
-                        Complété le{' '}
-                        {new Date(result.completedAt).toLocaleDateString('fr-FR', {
-                            year: 'numeric',
-                            month: 'long',
-                            day: 'numeric',
-                            hour: '2-digit',
-                            minute: '2-digit',
-                        })}
-                    </span>
-                </div>
-
-                <Link
-                    href="/dashboard"
-                    className="inline-block px-8 py-3 bg-blue-500 text-white rounded-lg hover:bg-blue-600 transition-colors font-medium"
-                >
-                    Retourner au tableau de bord
-                </Link>
-            </div>
+          </div>
         </div>
-    )
+      </div>
+
+      {/* Stats Section */}
+      <div className="container mx-auto px-4 max-w-4xl -mt-8">
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
+            {/* Score */}
+            <div className="text-center">
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {percentage}%
+              </div>
+              <div className="text-sm text-gray-600">Score obtenu</div>
+            </div>
+
+            {/* Passing Score */}
+            <div className="text-center">
+              <div className="text-3xl font-bold text-gray-900 mb-1">
+                {quiz.passingScore}%
+              </div>
+              <div className="text-sm text-gray-600">Score minimum</div>
+            </div>
+
+            {/* Correct Answers */}
+            <div className="text-center">
+              <div className="text-3xl font-bold text-green-600 mb-1">
+                {correctCount}
+              </div>
+              <div className="text-sm text-gray-600">Réponses correctes</div>
+            </div>
+
+            {/* Incorrect Answers */}
+            <div className="text-center">
+              <div className="text-3xl font-bold text-red-600 mb-1">
+                {incorrectCount}
+              </div>
+              <div className="text-sm text-gray-600">Réponses incorrectes</div>
+            </div>
+          </div>
+        </div>
+
+        {/* Detailed Results */}
+        <div className="bg-white rounded-xl shadow-lg p-6 mb-8">
+          <h2 className="text-2xl font-bold text-gray-900 mb-6">
+            Résultats détaillés
+          </h2>
+
+          <div className="space-y-4">
+            {questions.map((question, index) => {
+              const answer = answers.find(a => a.questionId.toString() === question._id);
+              const isCorrect = answer?.isCorrect || false;
+
+              return (
+                <div 
+                  key={question._id}
+                  className={`
+                    border-2 rounded-lg p-4
+                    ${isCorrect ? 'border-green-200 bg-green-50' : 'border-red-200 bg-red-50'}
+                  `}
+                >
+                  <div className="flex items-start gap-3">
+                    {isCorrect ? (
+                      <CheckCircle2 className="w-6 h-6 text-green-600 flex-shrink-0 mt-0.5" />
+                    ) : (
+                      <XCircle className="w-6 h-6 text-red-600 flex-shrink-0 mt-0.5" />
+                    )}
+                    
+                    <div className="flex-1">
+                      <div className="flex items-center justify-between mb-2">
+                        <span className="font-semibold text-gray-900">
+                          Question {index + 1}
+                        </span>
+                        <span className={`
+                          text-sm font-medium
+                          ${isCorrect ? 'text-green-700' : 'text-red-700'}
+                        `}>
+                          {answer?.pointsEarned || 0} / {question.points} points
+                        </span>
+                      </div>
+                      
+                      <p className="text-gray-700 mb-3">{question.questionText}</p>
+
+                      <div className="space-y-2">
+                        <div className="text-sm">
+                          <span className="font-medium text-gray-700">Votre réponse: </span>
+                          <span className={isCorrect ? 'text-green-700' : 'text-red-700'}>
+                            {answer?.selectedAnswers.map(i => question.options[i]).join(', ') || 'Non répondu'}
+                          </span>
+                        </div>
+                        
+                        {!isCorrect && (
+                          <div className="text-sm">
+                            <span className="font-medium text-gray-700">Bonne(s) réponse(s): </span>
+                            <span className="text-green-700">
+                              {question.correctAnswers.map(i => question.options[i]).join(', ')}
+                            </span>
+                          </div>
+                        )}
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Action Buttons */}
+        <div className="flex gap-4">
+          {!passed && (
+            <button
+              onClick={handleRetry}
+              className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-blue-600 text-white rounded-lg font-semibold hover:bg-blue-700 transition-colors"
+            >
+              <RotateCcw className="w-5 h-5" />
+              Réessayer le quiz
+            </button>
+          )}
+          
+          <button
+            onClick={handleBackToModule}
+            className="flex-1 flex items-center justify-center gap-2 px-6 py-4 bg-gray-600 text-white rounded-lg font-semibold hover:bg-gray-700 transition-colors"
+          >
+            <Home className="w-5 h-5" />
+            Retour au module
+          </button>
+        </div>
+      </div>
+    </div>
+  );
 }
